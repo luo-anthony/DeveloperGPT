@@ -41,9 +41,11 @@ Run `make lint` to run the linter.
 
 ## Test your changes
 
+Tests will be added soon!
+<!-- 
 Run `make test` to run the tests.
 
-Ensure code coverage report shows `> 70%` coverage, add tests to your PR.
+Ensure code coverage report shows `> 70%` coverage, add tests to your PR. -->
 
 <!-- ## Build the docs locally
 

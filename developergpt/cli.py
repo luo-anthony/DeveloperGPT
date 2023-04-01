@@ -1,6 +1,5 @@
 """
-Anthony Luo
-UNDER DEVELOPMENT
+DeveloperGPT by luo-anthony
 """
 
 import json
@@ -48,12 +47,13 @@ def handle_api_error(f):
 @click.option(
     "--temperature",
     default=0.1,
-    help="The temperature of the response (higher means more creative, lower means more predictable)",
+    help="The temperature of the model response (higher means more creative, lower means more predictable)",
 )
 def main(ctx, temperature):
     if not os.environ.get("OPENAI_API_KEY"):
         console.print(
-            "No OPENAI_API_KEY environment variable found. Please set the OPENAI_API_KEY environment variable. \n EXPORT OPENAI_API_KEY=<your_api_key>"
+            """No OPENAI_API_KEY environment variable found. Please set the OPENAI_API_KEY environment variable. 
+            \nexport OPENAI_API_KEY=<your_api_key>"""
         )
         sys.exit(-1)
     openai.api_key = os.environ["OPENAI_API_KEY"]
@@ -77,7 +77,7 @@ def chat(ctx):
             continue
 
         if user_input.lower() == "quit":
-            console.print("[bold blue]Bye! [/bold blue]")
+            console.print("[bold blue]Exiting... [/bold blue]")
             break
 
         input_messages.append({"role": "user", "content": user_input})
@@ -164,7 +164,7 @@ def cmd():
             continue
 
         if user_input.lower() == "quit":
-            console.print("[bold blue]Bye! [/bold blue]")
+            console.print("[bold blue]Exiting... [/bold blue]")
             break
 
         input_messages.append(config.format_user_request(user_input))

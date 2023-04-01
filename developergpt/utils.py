@@ -1,3 +1,7 @@
+"""
+DeveloperGPT by luo-anthony
+"""
+
 import tiktoken
 
 
@@ -13,7 +17,11 @@ def check_reduce_context(
     return messages, n_tokens
 
 
-# function adapted from: https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
+"""
+count_msg_tokens function adapted from: https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
+"""
+
+
 def count_msg_tokens(messages: list, model: str) -> int:
     """Returns the approximate number of tokens used by a list of messages"""
     try:
