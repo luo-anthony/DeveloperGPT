@@ -74,16 +74,16 @@ virtualenv:       ## Create a virtual environment.
 	@echo
 	@echo "!!! Please run 'source .venv/bin/activate' to enable the environment !!!"
 
-.PHONY: release
-release:          ## Create a new tag for release.
-	@echo "WARNING: This operation will create s version tag and push to github"
-	@read -p "Version? (provide the next x.y.z semver) : " TAG
-	@echo "$${TAG}" > developergpt/VERSION
-	@git commit -m "release: version $${TAG} 🚀"
-	@echo "creating git tag : $${TAG}"
-	@git tag $${TAG}
-	@git push -u origin HEAD --tags
-	@echo "Github Actions will detect the new tag and release the new version."
+# .PHONY: release
+# release:          ## Create a new tag for release.
+# 	@echo "WARNING: This operation will create s version tag and push to github"
+# 	@read -p "Version? (provide the next x.y.z semver) : " TAG
+# 	@echo "$${TAG}" > developergpt/VERSION
+# 	@git commit -m "release: version $${TAG} 🚀"
+# 	@echo "creating git tag : $${TAG}"
+# 	@git tag $${TAG}
+# 	@git push -u origin HEAD --tags
+# 	@echo "Github Actions will detect the new tag and release the new version."
 
 .PHONY: docs
 docs:             ## Build the documentation.

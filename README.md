@@ -7,10 +7,10 @@
 
 DeveloperGPT is a terminal application that uses the [OpenAI API](https://openai.com/blog/openai-api) with the **gpt-3.5-turbo** model to help developers be more productive. Currently DeveloperGPT provides two main functionalities:
 #### 1. Natural Language to Terminal Commands
-![Natural Language Example](samples/commandrequest.png)
+![Natural Language Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/commandrequest.png)
 
 #### 2. Chat with OpenAI GPT-3.5 Inside the Terminal
-![Chat Example](samples/chat.png)
+![Chat Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/chat.png)
 
 NOTE: Chat moderation is **NOT** implemented - all your chat messages should follow the OpenAI terms of use. 
 

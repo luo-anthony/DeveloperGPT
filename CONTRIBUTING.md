@@ -89,7 +89,7 @@ switch-to-poetry: ## Switch to poetry package manager.
 init:             ## Initialize the project based on an application template.
 ```
 
-## Making a new release
+<!-- ## Making a new release
 
 This project uses [semantic versioning](https://semver.org/) and tags releases with `X.Y.Z`
 Every time a new tag is created and pushed to the remote repo, github actions will
@@ -108,4 +108,4 @@ To trigger a new release all you need to do is.
 
 the `make release` will ask you the version number to create the tag, ex: type `0.1.1` when you are asked.
 
-> **CAUTION**:  The make release will change local changelog files and commit all the unstaged changes you have.
+> **CAUTION**:  The make release will change local changelog files and commit all the unstaged changes you have. -->
