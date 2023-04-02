@@ -7,17 +7,17 @@
 
 DeveloperGPT is a terminal application that uses the [OpenAI API](https://openai.com/blog/openai-api) with the **gpt-3.5-turbo** model to help developers be more productive. Currently DeveloperGPT provides two main functionalities:
 #### 1. Natural Language to Terminal Commands
-![Natural Language Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/commandrequest.png)
+![Natural Language Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/cmddemo.gif)
 
 #### 2. Chat with OpenAI GPT-3.5 Inside the Terminal
-![Chat Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/chat.png)
+![Chat Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/chatdemo.gift)
 
 NOTE: Chat moderation is **NOT** implemented - all your chat messages should follow the OpenAI terms of use. 
 
 
 ## Install it from PyPI
 ```bash
-pip install developergpt
+pip install -U developergpt
 ```
 
 ### Setup
@@ -43,6 +43,11 @@ $ developergpt chat
 # natural language to terminal commands
 $ developergpt cmd
 ```
+
+### OpenAI API Usage
+You can monitor your OpenAI API usage here: https://platform.openai.com/account/usage
+
+DeveloperGPT uses the `gpt-3.5-turbo` model which is very cost efficient (1/10 the cost of models such as `text-davinci-003`). Based on preliminary testing, using DeveloperGPT should cost no more than 10 cents per day (assuming ~100 requests/day). 
 
 ## Development
 

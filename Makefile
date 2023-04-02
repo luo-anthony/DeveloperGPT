@@ -79,7 +79,7 @@ virtualenv:       ## Create a virtual environment.
 # 	@echo "WARNING: This operation will create s version tag and push to github"
 # 	@read -p "Version? (provide the next x.y.z semver) : " TAG
 # 	@echo "$${TAG}" > developergpt/VERSION
-# 	@git commit -m "release: version $${TAG} 🚀"
+# 	@git commit -m "release: version $${TAG}"
 # 	@echo "creating git tag : $${TAG}"
 # 	@git tag $${TAG}
 # 	@git push -u origin HEAD --tags

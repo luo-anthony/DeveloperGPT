@@ -4,12 +4,16 @@ DeveloperGPT by luo-anthony
 
 import json
 import os
+import subprocess
 import sys
 from functools import wraps
 
 import click
 import inquirer
 import openai
+from prompt_toolkit import PromptSession
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from prompt_toolkit.styles import Style
 from rich.console import Console
 from rich.live import Live
 from rich.markdown import Markdown
@@ -18,8 +22,15 @@ from rich.panel import Panel
 from developergpt import config, utils
 
 console = Console()
+session: "PromptSession" = PromptSession()
 
 DEFAULT_COLUMN_WIDTH = 100
+
+input_style = Style.from_dict(
+    {
+        "prompt": "bold ansigreen",
+    }
+)
 
 
 def handle_api_error(f):
@@ -70,9 +81,11 @@ def chat(ctx):
     RESERVED_OUTPUT_TOKENS = 1024
     MAX_INPUT_TOKENS = MAX_TOKENS - RESERVED_OUTPUT_TOKENS
     input_messages = [config.INITIAL_CHAT_SYSTEM_MSG]
-    console.print("[gray] Type 'quit' to exit the chat[/gray]")
+    console.print("[gray]Type 'quit' to exit the chat[/gray]")
     while True:
-        user_input = console.input("\n[bold green]Chat: [/bold green]").strip()
+        user_input = session.prompt(
+            "Chat: ", auto_suggest=AutoSuggestFromHistory(), style=input_style
+        ).strip()
         if len(user_input) == 0:
             continue
 
@@ -140,7 +153,7 @@ def get_model_chat_response(
 @click.command(help="Execute commands using natural language")
 @handle_api_error
 def cmd():
-    input_request = "\n[bold green]Desired Command Request: [/bold green]"
+    input_request = "\nDesired Command Request: "
 
     MODEL = "gpt-3.5-turbo"
     MAX_TOKENS = 4000
@@ -156,10 +169,13 @@ def cmd():
         *config.EXAMPLE_TWO,
         *config.NEGATIVE_EXAMPLE_ONE,
     ]
-    console.print("[gray] Type 'quit' to exit[/gray]")
+    console.print("[gray]Type 'quit' to exit[/gray]")
 
     while True:
-        user_input = console.input(input_request).strip()
+        user_input = session.prompt(
+            input_request, auto_suggest=AutoSuggestFromHistory(), style=input_style
+        ).strip()
+
         if len(user_input) == 0:
             continue
 
@@ -258,15 +274,19 @@ def cmd():
         selected_option = inquirer.prompt(questions)["Next"]
 
         if selected_option == "Revise Query":
-            input_request = "[bold green] Revised Command Request: [/bold green]"
+            input_request = "Revised Command Request: "
             continue
         elif selected_option == "Execute Command(s)":
             console.print("[bold blue]Executing command(s)...\n[/bold blue]")
+
             for idx, cmd in enumerate(commands):
-                console.print(
-                    f"""[bold blue]Executing Command [{idx+1}]: {cmd.get('cmd_to_execute', '')}[/bold blue]"""
-                )
-                os.system(cmd.get("cmd_to_execute", ""))
+                command_text = cmd.get("cmd_to_execute", "")
+                if command_text:
+                    console.print(
+                        f"""[bold blue]Executing Command [{idx+1}]: {command_text}[/bold blue]"""
+                    )
+                    subprocess.run(command_text, shell=True)
+
         else:
             console.print("[bold blue]Exiting...\n[/bold blue]")
 
