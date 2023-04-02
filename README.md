@@ -40,7 +40,7 @@ $ developergpt
 # chat with GPT-3.5 inside the terminal 
 $ developergpt chat
 
-# natural language to termianl commands
+# natural language to terminal commands
 $ developergpt cmd
 ```
 

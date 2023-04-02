@@ -32,6 +32,7 @@ def read_requirements(path):
 setup(
     name="developergpt",
     version=read("developergpt", "VERSION"),
+    python_requires='>=3.9',
     description="developergpt is a command line tool that allows users to use natural language to execute commands and chat with GPT-3.5 models",
     url="https://github.com/luo-anthony/DeveloperGPT/",
     long_description=read("README.md"),

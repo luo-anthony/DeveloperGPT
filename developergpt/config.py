@@ -109,14 +109,14 @@ INITIAL_USER_CMD_MSG = {
 }
 
 
-def format_user_request(user_request: str) -> dict[str, str]:
+def format_user_request(user_request: str) -> dict:
     return {
         "role": "user",
         "content": f"""Provide the appropriate command-line commands that can be executed on a {platform.platform()} machine for the user request: "{user_request}".""",
     }
 
 
-def format_assistant_response(assistant_response: str) -> dict[str, str]:
+def format_assistant_response(assistant_response: str) -> dict:
     return {"role": "assistant", "content": assistant_response}
 
 
