@@ -10,7 +10,7 @@ DeveloperGPT is a terminal application that uses the [OpenAI API](https://openai
 ![Natural Language Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/cmddemo.gif)
 
 #### 2. Chat with OpenAI GPT-3.5 Inside the Terminal
-![Chat Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/chatdemo.gift)
+![Chat Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/chatdemo.gif)
 
 NOTE: Chat moderation is **NOT** implemented - all your chat messages should follow the OpenAI terms of use. 
 
