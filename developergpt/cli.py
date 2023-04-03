@@ -13,6 +13,7 @@ import inquirer
 import openai
 from prompt_toolkit import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from prompt_toolkit.shortcuts import CompleteStyle
 from prompt_toolkit.styles import Style
 from rich.console import Console
 from rich.live import Live
@@ -41,10 +42,12 @@ def handle_api_error(f):
         try:
             return f(*args, **kwargs)
         except openai.error.RateLimitError:
-            console.print("[bold red] Rate limit exceeded. Try again later.[/bold red]")
+            console.print(
+                "[bold red] Rate limit exceeded. Try again later.[/bold red]")
             sys.exit(-1)
         except openai.error.ServiceUnavailableError:
-            console.print("[bold red] Service Unavailable. Try again later.[/bold red]")
+            console.print(
+                "[bold red] Service Unavailable. Try again later.[/bold red]")
             sys.exit(-1)
         except openai.error.InvalidRequestError as e:
             console.log(f"[bold red] Invalid Request: {e}[/bold red]")
@@ -97,7 +100,8 @@ def chat(ctx):
         input_messages, n_input_tokens = utils.check_reduce_context(
             input_messages, MAX_INPUT_TOKENS, MODEL, ctx_removal_index=1
         )
-        n_output_tokens = max(RESERVED_OUTPUT_TOKENS, MAX_TOKENS - n_input_tokens)
+        n_output_tokens = max(RESERVED_OUTPUT_TOKENS,
+                              MAX_TOKENS - n_input_tokens)
         full_response = get_model_chat_response(
             MODEL, input_messages, n_output_tokens, ctx.obj["temperature"]
         )
@@ -169,11 +173,15 @@ def cmd():
         *config.EXAMPLE_TWO,
         *config.NEGATIVE_EXAMPLE_ONE,
     ]
+
     console.print("[gray]Type 'quit' to exit[/gray]")
 
     while True:
         user_input = session.prompt(
-            input_request, auto_suggest=AutoSuggestFromHistory(), style=input_style
+            input_request,
+            style=input_style,
+            completer=utils.PathCompleter(),
+            complete_style=CompleteStyle.MULTI_COLUMN,
         ).strip()
 
         if len(user_input) == 0:
@@ -196,7 +204,8 @@ def cmd():
                 ctx_removal_index=2,
             )
 
-        n_output_tokens = max(RESERVED_OUTPUT_TOKENS, MAX_TOKENS - n_input_tokens)
+        n_output_tokens = max(RESERVED_OUTPUT_TOKENS,
+                              MAX_TOKENS - n_input_tokens)
 
         with console.status("[bold blue]Decoding request") as _:
             response = openai.ChatCompletion.create(
@@ -268,7 +277,8 @@ def cmd():
         # Give user options to revise query, execute command(s), or quit
         options = ["Revise Query", "Execute Command(s)", "Quit"]
         questions = [
-            inquirer.List("Next", message="What would you like to do?", choices=options)
+            inquirer.List(
+                "Next", message="What would you like to do?", choices=options)
         ]
 
         selected_option = inquirer.prompt(questions)["Next"]
@@ -294,12 +304,6 @@ def cmd():
 
 
 @click.command()
-def test():
-    # used for testing functions
-    pass
-
-
-@click.command()
 @click.pass_context
 def api(ctx):
     # TODO: API command that exposes api to developer in terminal
@@ -307,10 +311,17 @@ def api(ctx):
     pass
 
 
+@click.command()
+@click.pass_context
+def test(ctx):
+    # testing purposes only
+    pass
+
+
 main.add_command(cmd)
 main.add_command(chat)
 # main.add_command(api)
-# main.add_command(test)
+main.add_command(test)
 
 if __name__ == "__main__":
     main()
