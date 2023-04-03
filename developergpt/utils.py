@@ -84,7 +84,7 @@ class PathCompleter(Completer):
             # only display completions when the user presses tab
             cwd = os.getcwd()
 
-            text = document.text_before_cursor.strip().lower().split(" ")[-1]
+            text = document.text_before_cursor.lstrip().lower().split(" ")[-1]
             # print(f"text={text}")
 
             auto_completion = []
