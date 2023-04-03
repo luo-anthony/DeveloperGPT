@@ -2,6 +2,8 @@
 
 DeveloperGPT welcomes contributions from the community.
 
+**DeveloperGPT requires Python >= 3.9**
+
 This instructions are for linux base systems. (Linux, MacOS, BSD, etc.)
 ## Setting up your own fork of this repo.
 

@@ -13,6 +13,7 @@ import inquirer
 import openai
 from prompt_toolkit import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from prompt_toolkit.shortcuts import CompleteStyle
 from prompt_toolkit.styles import Style
 from rich.console import Console
 from rich.live import Live
@@ -169,11 +170,15 @@ def cmd():
         *config.EXAMPLE_TWO,
         *config.NEGATIVE_EXAMPLE_ONE,
     ]
+
     console.print("[gray]Type 'quit' to exit[/gray]")
 
     while True:
         user_input = session.prompt(
-            input_request, auto_suggest=AutoSuggestFromHistory(), style=input_style
+            input_request,
+            style=input_style,
+            completer=utils.PathCompleter(),
+            complete_style=CompleteStyle.MULTI_COLUMN,
         ).strip()
 
         if len(user_input) == 0:
@@ -294,16 +299,16 @@ def cmd():
 
 
 @click.command()
-def test():
-    # used for testing functions
+@click.pass_context
+def api(ctx):
+    # TODO: API command that exposes api to developer in terminal
+    # NOTE: OpenAI has a command line tool already, this may not be nescessary
     pass
 
 
 @click.command()
 @click.pass_context
-def api(ctx):
-    # TODO: API command that exposes api to developer in terminal
-    # NOTE: OpenAI has a command line tool already, this may not be nescessary
+def test(ctx):
     pass
 
 

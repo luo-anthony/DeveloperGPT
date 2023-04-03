@@ -3,7 +3,10 @@ DeveloperGPT by luo-anthony
 """
 
 
+import os
+
 import tiktoken
+from prompt_toolkit.completion import Completer, Completion
 
 
 def check_reduce_context(
@@ -18,13 +21,11 @@ def check_reduce_context(
     return messages, n_tokens
 
 
-"""
-count_msg_tokens function adapted from: https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
-"""
-
-
 def count_msg_tokens(messages: list, model: str) -> int:
-    """Returns the approximate number of tokens used by a list of messages"""
+    """
+    Returns the approximate number of tokens used by a list of messages
+    function adapted from: https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
+    """
     try:
         encoding = tiktoken.encoding_for_model(model)
     except KeyError:
@@ -73,3 +74,53 @@ def remove_old_contexts(
         n_tokens -= n_removed
 
     return messages, n_tokens
+
+
+class PathCompleter(Completer):
+    """A completer for file paths."""
+
+    def get_completions(self, document, complete_event):
+        if complete_event.completion_requested:
+            # only display completions when the user presses tab
+            cwd = os.getcwd()
+
+            text = document.text_before_cursor.strip().lower().split(" ")[-1]
+            # print(f"text={text}")
+
+            auto_completion = []
+
+            if text.startswith("~/"):
+                f_path = os.path.expanduser(text)
+            elif text.startswith("/"):
+                f_path = text
+            else:
+                f_path = os.path.join(cwd, text)
+
+            curr_dir = os.path.dirname(f_path)
+            fname = os.path.basename(f_path) if len(text) > 0 else ""
+
+            # print(f"f_path={f_path}, fname={fname}, curr_dir={dir}")
+
+            if os.path.isdir(curr_dir):
+                # Generate a list of matching file names in the current directory
+                # TODO: possibly change to glob + re to handle regular expressions
+                auto_completion = [
+                    os.path.join(curr_dir, f)
+                    for f in os.listdir(curr_dir)
+                    if fname in f.lower()
+                ]
+
+            # Yield the completions
+            for completion in auto_completion:
+                # simplify the completion substitution if possible
+                if cwd in completion:
+                    completion = os.path.relpath(completion, cwd)
+                elif text.startswith("~/"):
+                    completion = completion.replace(os.path.expanduser("~/"), "~/")
+
+                # substitute for the full path but only display the basename of the file
+                yield Completion(
+                    completion,
+                    display=os.path.basename(completion),
+                    start_position=-len(text),
+                )
