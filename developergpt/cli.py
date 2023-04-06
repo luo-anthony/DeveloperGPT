@@ -2,8 +2,7 @@
 DeveloperGPT by luo-anthony
 """
 
-import json
-import os
+import copy
 import subprocess
 import sys
 from functools import wraps
@@ -14,24 +13,12 @@ import openai
 from prompt_toolkit import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.shortcuts import CompleteStyle
-from prompt_toolkit.styles import Style
 from rich.console import Console
-from rich.live import Live
-from rich.markdown import Markdown
-from rich.panel import Panel
 
-from developergpt import config, utils
+from developergpt import config, huggingface_adapter, openai_adapter, utils
 
 console = Console()
 session: "PromptSession" = PromptSession()
-
-DEFAULT_COLUMN_WIDTH = 100
-
-input_style = Style.from_dict(
-    {
-        "prompt": "bold ansigreen",
-    }
-)
 
 
 def handle_api_error(f):
@@ -55,219 +42,103 @@ def handle_api_error(f):
 
 
 @click.group()
-@click.pass_context
 @click.option(
     "--temperature",
     default=0.1,
     help="The temperature of the model response (higher means more creative, lower means more predictable)",
 )
-def main(ctx, temperature):
-    if not os.environ.get("OPENAI_API_KEY"):
+@click.option(
+    "--model",
+    default="gpt-3.5",
+    help="The language model to use. Options: gpt-3.5 (default), bloom",
+)
+@click.pass_context
+def main(ctx, temperature, model):
+    model = model.lower().strip()
+    if model not in config.SUPPORTED_MODELS:
         console.print(
-            """No OPENAI_API_KEY environment variable found. Please set the OPENAI_API_KEY environment variable. 
-            \nexport OPENAI_API_KEY=<your_api_key>"""
+            f"""[bold red]Model {model} is not supported. 
+            Supported models: {",".join(config.SUPPORTED_MODELS)}[/bold red]"""
         )
         sys.exit(-1)
-    openai.api_key = os.environ["OPENAI_API_KEY"]
+    if model == config.GPT35:
+        openai.api_key = config.get_environ_key(config.OPEN_AI_API_KEY, console)
+    elif model == config.BLOOM:
+        console.print(
+            "[bold yellow]Using Bloom 176B model: some features may not be supported and results may not be as good as using GPT-3.5.[/bold yellow]"
+        )
+        # we don't need the api key for bloom yet
+
     ctx.ensure_object(dict)
     ctx.obj["temperature"] = temperature
+    ctx.obj["model"] = model
 
 
 @click.command(help="Chat with DeveloperGPT")
 @click.pass_context
+@handle_api_error
 def chat(ctx):
     # TODO save previous conversations like the web interface does?
+    if ctx.obj["model"] != config.GPT35:
+        console.print(
+            f"""[bold red]Model {ctx.obj["model"]} is not supported for chat. 
+            Supported models: {config.GPT35}[/bold red]"""
+        )
+        sys.exit(-1)
+
     MODEL = "gpt-3.5-turbo"
     MAX_TOKENS = 4000
     RESERVED_OUTPUT_TOKENS = 1024
     MAX_INPUT_TOKENS = MAX_TOKENS - RESERVED_OUTPUT_TOKENS
-    input_messages = [config.INITIAL_CHAT_SYSTEM_MSG]
+    input_messages = [openai_adapter.INITIAL_CHAT_SYSTEM_MSG]
     console.print("[gray]Type 'quit' to exit the chat[/gray]")
     while True:
-        user_input = session.prompt(
-            "Chat: ", auto_suggest=AutoSuggestFromHistory(), style=input_style
-        ).strip()
+        user_input = utils.prompt_user_input(
+            "Chat: ", session, console, auto_suggest=AutoSuggestFromHistory()
+        )
+
         if len(user_input) == 0:
             continue
-
-        if user_input.lower() == "quit":
-            console.print("[bold blue]Exiting... [/bold blue]")
-            break
 
         input_messages.append({"role": "user", "content": user_input})
         input_messages, n_input_tokens = utils.check_reduce_context(
             input_messages, MAX_INPUT_TOKENS, MODEL, ctx_removal_index=1
         )
         n_output_tokens = max(RESERVED_OUTPUT_TOKENS, MAX_TOKENS - n_input_tokens)
-        full_response = get_model_chat_response(
-            MODEL, input_messages, n_output_tokens, ctx.obj["temperature"]
+        full_response = openai_adapter.get_model_chat_response(
+            MODEL, console, input_messages, n_output_tokens, ctx.obj["temperature"]
         )
         input_messages.append({"role": "assistant", "content": full_response})
 
 
-@handle_api_error
-def get_model_chat_response(
-    model: str, messages: list, max_tokens: int, temperature: float
-) -> str:
-    """Get the response from the model."""
-    response = openai.ChatCompletion.create(
-        model=model,
-        messages=messages,
-        max_tokens=max_tokens,
-        temperature=temperature,
-        stream=True,
-    )
-
-    collected_messages = []
-    panel_width = min(console.width, DEFAULT_COLUMN_WIDTH)
-    output_panel = Panel(
-        "",
-        title="[bold blue]DeveloperGPT[/bold blue]",
-        title_align="left",
-        width=panel_width,
-    )
-
-    # TODO prettify the output
-    with Live(output_panel, refresh_per_second=4):
-        for chunk in response:
-            msg = chunk["choices"][0]["delta"].get("content", "")
-            collected_messages.append(msg)
-            output_panel.renderable = Markdown(
-                "".join(collected_messages), inline_code_theme="monokai"
-            )
-
-    full_response = "".join(collected_messages)
-    return full_response
-
-
-# def format_model_output(text: str) -> str:
-#     """Format the model output to be more readable."""
-#     text = re.sub(
-#         r"```(.+?)```", "[syntax]" + r"\1" + "[/syntax]", text, flags=re.DOTALL
-#     )
-#     text = re.sub(r"`(.+?)`", "[syntax]" + r"\1" +
-#                   "[/syntax]", text, flags=re.DOTALL)
-#     text.replace("```", "[syntax]")
-#     return text
-
-
 @click.command(help="Execute commands using natural language")
+@click.pass_context
 @handle_api_error
-def cmd():
+def cmd(ctx):
     input_request = "\nDesired Command Request: "
 
-    MODEL = "gpt-3.5-turbo"
-    MAX_TOKENS = 4000
-    RESERVED_OUTPUT_TOKENS = 1024
-    MAX_INPUT_TOKENS = MAX_TOKENS - RESERVED_OUTPUT_TOKENS
-    TEMP = 0.05
-    panel_width = min(console.width, DEFAULT_COLUMN_WIDTH)
-
-    input_messages = [
-        config.INITIAL_CMD_SYSTEM_MSG,
-        config.INITIAL_USER_CMD_MSG,
-        *config.EXAMPLE_ONE,
-        *config.EXAMPLE_TWO,
-        *config.NEGATIVE_EXAMPLE_ONE,
-    ]
+    model = ctx.obj["model"]
+    input_messages = copy.deepcopy(openai_adapter.BASE_INPUT_CMD_MSGS)
 
     console.print("[gray]Type 'quit' to exit[/gray]")
-
     while True:
-        user_input = session.prompt(
+        user_input = utils.prompt_user_input(
             input_request,
-            style=input_style,
+            session,
+            console,
             completer=utils.PathCompleter(),
             complete_style=CompleteStyle.MULTI_COLUMN,
-        ).strip()
-
+        )
         if len(user_input) == 0:
             continue
 
-        if user_input.lower() == "quit":
-            console.print("[bold blue]Exiting... [/bold blue]")
-            break
+        if model == config.GPT35:
+            commands = openai_adapter.model_command(user_input, console, input_messages)
+        elif model == config.BLOOM:
+            commands = huggingface_adapter.model_command(user_input, console)
 
-        input_messages.append(config.format_user_request(user_input))
-
-        n_input_tokens = utils.count_msg_tokens(input_messages, MODEL)
-
-        if n_input_tokens > MAX_INPUT_TOKENS:
-            input_messages, n_input_tokens = utils.remove_old_contexts(
-                input_messages,
-                MAX_INPUT_TOKENS,
-                n_input_tokens,
-                MODEL,
-                ctx_removal_index=2,
-            )
-
-        n_output_tokens = max(RESERVED_OUTPUT_TOKENS, MAX_TOKENS - n_input_tokens)
-
-        with console.status("[bold blue]Decoding request") as _:
-            response = openai.ChatCompletion.create(
-                model=MODEL,
-                messages=input_messages,
-                max_tokens=n_output_tokens,
-                temperature=TEMP,
-            )
-
-        model_output = response["choices"][0]["message"]["content"].strip()
-        # console.log(model_output)
-        try:
-            output_data = json.loads(model_output)
-        except json.decoder.JSONDecodeError:
-            console.print(
-                "[bold red]Error: Could not parse model response properly[/bold red]"
-            )
+        if not commands:
             continue
-
-        if output_data.get("error", 0) or "commands" not in output_data:
-            console.print(
-                "[bold red]Error: Could not find commands for this request[/bold red]"
-            )
-            continue
-
-        commands = output_data.get("commands", {})
-
-        # print all the commands in a panel
-        commands_format = "\n\n".join(
-            [f"""- `{c.get("cmd_to_execute", "")}`""" for c in commands]
-        )
-
-        cmd_out = Markdown(
-            commands_format,
-            inline_code_lexer="bash",
-        )
-
-        console.print(
-            Panel(
-                cmd_out,
-                title="[bold blue]Command(s)[/bold blue]",
-                title_align="left",
-                width=panel_width,
-            )
-        )
-
-        # print all the explanations in a panel
-        explanation_items = []
-        for cmd in commands:
-            explanation_items.extend(
-                [f"- {c}" for c in cmd.get("cmd_explanations", [])]
-            )
-            explanation_items.extend(
-                [f"\t- {c}" for c in cmd.get("arg_explanations", [])]
-            )
-
-        arg_out = Markdown("\n".join(explanation_items))
-
-        console.print(
-            Panel(
-                arg_out,
-                title="[bold blue]Explanation[/bold blue]",
-                title_align="left",
-                width=panel_width,
-            )
-        )
 
         # TODO: make this look nicer
         # Give user options to revise query, execute command(s), or quit
@@ -285,12 +156,11 @@ def cmd():
             console.print("[bold blue]Executing command(s)...\n[/bold blue]")
 
             for idx, cmd in enumerate(commands):
-                command_text = cmd.get("cmd_to_execute", "")
-                if command_text:
+                if cmd:
                     console.print(
-                        f"""[bold blue]Executing Command [{idx+1}]: {command_text}[/bold blue]"""
+                        f"""[bold blue]Executing Command [{idx+1}]: {cmd}[/bold blue]"""
                     )
-                    subprocess.run(command_text, shell=True)
+                    subprocess.run(cmd, shell=True)
 
         else:
             console.print("[bold blue]Exiting...\n[/bold blue]")
