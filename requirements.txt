@@ -5,3 +5,4 @@ rich
 inquirer
 prompt_toolkit
 text_generation
+pyperclip

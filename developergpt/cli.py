@@ -142,7 +142,12 @@ def cmd(ctx):
 
         # TODO: make this look nicer
         # Give user options to revise query, execute command(s), or quit
-        options = ["Revise Query", "Execute Command(s)", "Quit"]
+        options = [
+            "Revise Query",
+            "Execute Command(s)",
+            "Copy Command(s) to Clipboard",
+            "Quit",
+        ]
         questions = [
             inquirer.List("Next", message="What would you like to do?", choices=options)
         ]
@@ -162,6 +167,13 @@ def cmd(ctx):
                     )
                     subprocess.run(cmd, shell=True)
 
+            console.print(
+                "[bold blue]Copied executed command(s) to clipboard[/bold blue]"
+            )
+            utils.copy_comands_to_cliboard(commands)
+        elif selected_option == "Copy Command(s) to Clipboard":
+            utils.copy_comands_to_cliboard(commands)
+            console.print("[bold blue]Copied command(s) to clipboard[/bold blue]")
         else:
             console.print("[bold blue]Exiting...\n[/bold blue]")
 

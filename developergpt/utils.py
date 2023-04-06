@@ -6,6 +6,7 @@ DeveloperGPT by luo-anthony
 import os
 import sys
 
+import pyperclip
 import tiktoken
 from prompt_toolkit.completion import Completer, Completion
 from rich.console import Console
@@ -32,6 +33,10 @@ def pretty_print_commands(commands: list, console: "Console", panel_width: int):
             width=panel_width,
         )
     )
+
+
+def copy_comands_to_cliboard(commands: list):
+    pyperclip.copy("\n".join(commands))
 
 
 def prompt_user_input(
