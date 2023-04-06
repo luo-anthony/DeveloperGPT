@@ -5,22 +5,33 @@
 
 <!-- [![codecov](https://codecov.io/gh/luo-anthony/DeveloperGPT/branch/main/graph/badge.svg?token=DeveloperGPT_token_here)](https://codecov.io/gh/luo-anthony/DeveloperGPT) -->
 
-DeveloperGPT is a terminal application that uses the [OpenAI API](https://openai.com/blog/openai-api) with the **gpt-3.5-turbo** model to help developers be more productive. Currently DeveloperGPT provides two main functionalities:
+DeveloperGPT is a terminal application that uses the latest LLMs to help developers be more productive. 
+
+By default, DeveloperGPT uses the [gpt-3.5-turbo](https://platform.openai.com/docs/models) model from OpenAI, but you can also use the open-source [BLOOM](https://bigscience.huggingface.co/blog/bloom) model (some features are currently not supported when using BLOOM). Support for more models and features is coming soon! 
+
+DeveloperGPT has two main features:
 #### 1. Natural Language to Terminal Commands
+**Supported Models:** **GPT3.5 (default)**, BLOOM
 ![Natural Language Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/cmddemo.gif)
 
-#### 2. Chat with OpenAI GPT-3.5 Inside the Terminal
+**NOTE:** Currently, command explanations are **not** supported when using BLOOM. Commands using BLOOM may also require more revision to get the desired output. 
+
+#### 2. Chat with GPT-3.5 Inside the Terminal
+**Supported Models:** **GPT3.5 (only)**
 ![Chat Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/chatdemo.gif)
 
-NOTE: Chat moderation is **NOT** implemented - all your chat messages should follow the OpenAI terms of use. 
+**NOTE:** Chat moderation is **NOT** implemented - all your chat messages should follow the OpenAI terms of use. 
 
 
-## Install it from PyPI
+## Install DeveloperGPT from PyPI
 ```bash
 pip install -U developergpt
 ```
 
 ### Setup
+
+DeveloperGPT uses the GPT-3.5 model from OpenAI by default (with full feature support). 
+
 Get your own OpenAI API Key: https://platform.openai.com/account/api-keys
 
 ```bash
@@ -32,6 +43,8 @@ $ echo 'export OPENAI_API_KEY=[your_key_here]' >> ~/.zshenv
 $ source ~/.zshenv
 ```
 
+If you just want to use the BLOOM model with **Feature 1 (Natural Language to Terminal Commands)** only, you don't need to setup an OpenAI key.
+
 ## Usage
 ```bash
 # see available commands
@@ -40,28 +53,29 @@ $ developergpt
 # chat with GPT-3.5 inside the terminal 
 $ developergpt chat
 
-# natural language to terminal commands
+# natural language to terminal commands using GPT-3.5 (default)
 $ developergpt cmd
+
+# natural langauge to terminal commands using BLOOM
+$ developergpt --model bloom cmd
 ```
 
-### OpenAI API Usage
+### OpenAI API Usage (GPT-3.5)
 You can monitor your OpenAI API usage here: https://platform.openai.com/account/usage
 
 DeveloperGPT uses the `gpt-3.5-turbo` model which is very cost efficient (1/10 the cost of models such as `text-davinci-003`). Based on preliminary testing, using DeveloperGPT should cost no more than 10 cents per day (assuming ~100 requests/day). 
 
-## Development
+### Hugging-Face API Usage (BLOOM)
+Currently, using the BLOOM model does not require a [Hugging Face Inference API](https://huggingface.co/docs/api-inference/index) token and is free (but rate limited). 
 
-DeveloperGPT is currently under active development.
+## Contributing
 
 Read the [CONTRIBUTING.md](CONTRIBUTING.md) file.
 
-### Future Work
-- Add tests + update CI pipeline
-- Switch to poetry package manager 
-- Prettify model output 
-- Support other models (hugging-face)
-- Add docs 
+### Future Roadmap
+- Add support for more open-source models (Vicuna-13B?)
 
 ## Credit
+- Thanks to Hugging Face and the NLP community for open-source models! 
 - This project uses the Python project template from https://github.com/rochacbruno/python-project-template
 - This project was written with assistance from ChatGPT and Github CoPilot. 

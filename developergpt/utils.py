@@ -4,9 +4,60 @@ DeveloperGPT by luo-anthony
 
 
 import os
+import sys
 
 import tiktoken
 from prompt_toolkit.completion import Completer, Completion
+from rich.console import Console
+from rich.markdown import Markdown
+from rich.panel import Panel
+
+from developergpt import config
+
+
+def pretty_print_commands(commands: list, console: "Console", panel_width: int):
+    # print all the commands in a panel
+    commands_format = "\n\n".join([f"""- `{c}`""" for c in commands])
+
+    cmd_out = Markdown(
+        commands_format,
+        inline_code_lexer="bash",
+    )
+
+    console.print(
+        Panel(
+            cmd_out,
+            title="[bold blue]Command(s)[/bold blue]",
+            title_align="left",
+            width=panel_width,
+        )
+    )
+
+
+def prompt_user_input(
+    input_request,
+    session,
+    console,
+    completer=None,
+    complete_style=None,
+    auto_suggest=None,
+):
+    user_input = session.prompt(
+        input_request,
+        style=config.INPUT_STYLE,
+        completer=completer,
+        complete_style=complete_style,
+        auto_suggest=auto_suggest,
+    ).strip()
+
+    if len(user_input) == 0:
+        return ""
+
+    if user_input.lower() == "quit":
+        console.print("[bold blue]Exiting... [/bold blue]")
+        sys.exit(0)
+
+    return user_input
 
 
 def check_reduce_context(
