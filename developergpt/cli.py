@@ -194,8 +194,16 @@ def test(ctx):
     pass
 
 
+@click.command(help="Give feedback")
+def feedback():
+    console.print(
+        "Thanks for using DeveloperGPT! You can [bold blue][link=https://forms.gle/J36KbztsRAPHXnrKA]give feedback here[/link][/bold blue]!"
+    )
+
+
 main.add_command(cmd)
 main.add_command(chat)
+main.add_command(feedback)
 # main.add_command(api)
 # main.add_command(test)
 
