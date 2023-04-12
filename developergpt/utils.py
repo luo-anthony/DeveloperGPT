@@ -46,6 +46,7 @@ def prompt_user_input(
     completer=None,
     complete_style=None,
     auto_suggest=None,
+    key_bindings=None,
 ):
     user_input = session.prompt(
         input_request,
@@ -53,6 +54,7 @@ def prompt_user_input(
         completer=completer,
         complete_style=complete_style,
         auto_suggest=auto_suggest,
+        key_bindings=key_bindings,
     ).strip()
 
     if len(user_input) == 0:
