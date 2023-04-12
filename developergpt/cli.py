@@ -201,14 +201,6 @@ def cmd(ctx):
 
 @click.command()
 @click.pass_context
-def api(ctx):
-    # TODO: API command that exposes api to developer in terminal
-    # NOTE: OpenAI has a command line tool already, this may not be nescessary
-    pass
-
-
-@click.command()
-@click.pass_context
 def test(ctx):
     pass
 
@@ -223,7 +215,6 @@ def feedback():
 main.add_command(cmd)
 main.add_command(chat)
 main.add_command(feedback)
-# main.add_command(api)
 # main.add_command(test)
 
 if __name__ == "__main__":
