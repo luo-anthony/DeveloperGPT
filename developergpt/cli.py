@@ -12,6 +12,9 @@ import inquirer
 import openai
 from prompt_toolkit import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.key_binding.key_processor import KeyPressEvent
+from prompt_toolkit.keys import Keys
 from prompt_toolkit.shortcuts import CompleteStyle
 from rich.console import Console
 
@@ -111,6 +114,20 @@ def chat(ctx):
         input_messages.append({"role": "assistant", "content": full_response})
 
 
+kb = KeyBindings()
+
+
+@kb.add(Keys.Enter, eager=True)
+def _(event: KeyPressEvent):
+    buff = event.app.current_buffer
+    if buff.complete_state:
+        # during completion, enter will select the current completion instead of submitting input
+        if buff.complete_state.current_completion:
+            buff.apply_completion(buff.complete_state.current_completion)
+            return  # don't submit input
+    buff.validate_and_handle()
+
+
 @click.command(help="Execute commands using natural language")
 @click.pass_context
 @handle_api_error
@@ -121,6 +138,7 @@ def cmd(ctx):
     input_messages = copy.deepcopy(openai_adapter.BASE_INPUT_CMD_MSGS)
 
     console.print("[gray]Type 'quit' to exit[/gray]")
+
     while True:
         user_input = utils.prompt_user_input(
             input_request,
@@ -128,6 +146,7 @@ def cmd(ctx):
             console,
             completer=utils.PathCompleter(),
             complete_style=CompleteStyle.MULTI_COLUMN,
+            key_bindings=kb,
         )
         if len(user_input) == 0:
             continue
