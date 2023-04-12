@@ -169,10 +169,10 @@ class PathCompleter(Completer):
             # Yield the completions
             for completion in auto_completion:
                 # simplify the completion substitution if possible
-                if cwd in completion:
-                    completion = os.path.relpath(completion, cwd)
-                elif text.startswith("~/"):
+                if text.startswith("~/"):
                     completion = completion.replace(os.path.expanduser("~/"), "~/")
+                elif cwd in completion:
+                    completion = os.path.relpath(completion, cwd)
 
                 # substitute for the full path but only display the basename of the file
                 yield Completion(
