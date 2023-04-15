@@ -58,6 +58,9 @@ $ developergpt cmd
 
 # natural langauge to terminal commands using BLOOM
 $ developergpt --model bloom cmd
+
+# give feedback
+$ developergpt feedback
 ```
 
 ### OpenAI API Usage (GPT-3.5)
@@ -73,7 +76,7 @@ Currently, using the BLOOM model does not require a [Hugging Face Inference API]
 Read the [CONTRIBUTING.md](CONTRIBUTING.md) file.
 
 ### Future Roadmap
-- Add support for more open-source models (Vicuna-13B?)
+- Add support for open-source models (Alpaca, Vicuna, Dolly, etc.)
 
 ## Credit
 - Thanks to Hugging Face and the NLP community for open-source models! 
