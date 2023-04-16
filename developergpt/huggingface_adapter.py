@@ -136,7 +136,6 @@ BLOOM_CHAT_PROMPT = """The following is a conversation with a software developme
     The chatbot is conversational, flexible, and should be able to engage in casual, friendly conversation to assist the user.
     The chatbot should also be able to maintain context across multiple turns of conversation.\n"""
 
-# examples created using ChatGPT output
 raw_chat_msgs = [
     "User: What is the difference between x86 and ARM architecture?",
     """Assistant: x86 and ARM are two different processor architectures used in modern computing devices. They have different instruction sets, 
