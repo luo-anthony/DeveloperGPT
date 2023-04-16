@@ -21,6 +21,7 @@ from developergpt import config
 # TODO: add more hugging_face models: flan-ul2, Vicuna-13B?
 
 
+# TODO change the output format so that it doesn't use JSON and we don't need to deal with weird escaping issues with regex output
 BLOOM_CMD_PROMPT = """The following is a software development command line system that allows a user to get the command(s) to execute their request in natural language. 
     The system gives the user a series of commands to be executed for the given platform in JSON format with explanations.\n"""
 
@@ -79,10 +80,10 @@ BLOOM_EXAMPLE_CMDS = [
 ]
 
 
-def model_command(user_input: str, console: "Console") -> list:
+def model_command(user_input: str, console: "Console") -> str:
     model = "bigscience/bloom"
     client = InferenceAPIClient(model)
-    MAX_RESPONSE_TOKENS = 192
+    MAX_RESPONSE_TOKENS = 256
 
     messages = copy.deepcopy(BLOOM_EXAMPLE_CMDS)
     messages.append(format_user_cmd_request(user_input))
@@ -94,9 +95,21 @@ def model_command(user_input: str, console: "Console") -> list:
     # console.log(model_input)
     with console.status("[bold blue]Decoding request") as _:
         try:
-            response = client.generate(
+            exit = False
+            output_text = ""
+            for response in client.generate_stream(
                 model_input, max_new_tokens=MAX_RESPONSE_TOKENS
-            ).generated_text
+            ):
+                if not response.token.special:
+                    output_text += response.token.text
+                    # stop generation once we hit "User:"
+                    idx = output_text.find("User:")
+                    if idx > 0:
+                        output_text = output_text[:idx].strip()
+                        exit = True
+                    if exit:
+                        break
+
         except errors.RateLimitExceededError:
             console.print(
                 "[bold red]Hugging Face Inference API rate limit exceeded. Please try again later or set a Hugging Face API key. [/bold red]"
@@ -113,13 +126,9 @@ def model_command(user_input: str, console: "Console") -> list:
             )
             sys.exit(-1)
 
-    # clean up response
-    idx = response.find("User:")
-    if idx > 0:
-        response = response[:idx].replace("\n", "")
-    response = response.strip()
-    # console.log(response)
-    return response
+    # clean up
+    output_text = output_text.strip()
+    return output_text
 
 
 BLOOM_CHAT_PROMPT = """The following is a conversation with a software development expert chatbot. 
