@@ -32,16 +32,14 @@ def read_requirements(path):
 setup(
     name="developergpt",
     version=read("developergpt", "VERSION"),
-    python_requires='>=3.9',
-    description="developergpt is a command line tool that allows users to use natural language to execute commands and chat with GPT-3.5 models",
+    python_requires=">=3.9",
+    description="developergpt is a command line tool that allows users to use natural language to execute commands and chat with the latest LLMs",
     url="https://github.com/luo-anthony/DeveloperGPT/",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
     author="luo-anthony",
     packages=find_packages(exclude=["tests", ".github"]),
     install_requires=read_requirements("requirements.txt"),
-    entry_points={
-        "console_scripts": ["developergpt = developergpt.__main__:main"]
-    },
+    entry_points={"console_scripts": ["developergpt = developergpt.__main__:main"]},
     extras_require={"test": read_requirements("requirements-test.txt")},
 )
