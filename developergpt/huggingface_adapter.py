@@ -2,55 +2,229 @@
 DeveloperGPT by luo-anthony
 """
 
+import copy
 import platform
 import re
+import sys
 
+import requests
 from rich.console import Console
+from rich.live import Live
+from rich.markdown import Markdown
+from rich.panel import Panel
 
 # using: https://pypi.org/project/text-generation/
-from text_generation import InferenceAPIClient
+from text_generation import InferenceAPIClient, errors
 
-from developergpt import config, utils
+from developergpt import config
 
 # TODO: add more hugging_face models: flan-ul2, Vicuna-13B?
 
 
-def format_bloom_input(user_input: str) -> str:
-    model_input = f"""To {user_input} on a {platform.platform()} machine, use the following command(s):"""
-    return model_input
+BLOOM_CMD_PROMPT = """The following is a software development command line system that allows a user to get the command(s) to execute their request in natural language. 
+    The system gives the user a series of commands to be executed for the given platform in JSON format with explanations.\n"""
+
+conda_output_example = """
+    {
+        "error": 0,
+        "commands": [
+            {
+                "cmd_to_execute": "curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh",
+                "cmd_explanations": ["The `curl` command is used to issue web requests, e.g. download web pages."],
+                "arg_explanations": [
+                                        "`-O` specifies that we want to save the response to a file.",
+                                        "`https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh` is the URL of the file we want to download."
+                                    ]
+            },
+            {
+                "cmd_to_execute": "bash Miniconda3-latest-MacOSX-x86_64.sh",
+                "cmd_explanations": ["The `bash` command is used to execute shell scripts."],
+                "arg_explanations": ["`Miniconda3-latest-MacOSX-x86_64.sh` is the name of the file we want to execute."]
+            }
+        ]
+    }
+"""
+
+search_output_example = """
+    {
+        "error" : 0,
+        "commands": [
+            {
+                "cmd_to_execute": "find ~/Documents/ -name 'test*.py'",
+                "cmd_explanations": ["`find` is used to list files."],
+                "arg_explanations": [
+                                        "``~/Documents` specifies the folder to search in.",
+                                        "`-name 'test.py'` specifies that we want to search for files starting with `test` and ending with `.py`."
+                                    ]
+            }
+        ]
+    }
+    """
+
+unknown_query_output_example_one = """{"error": 1}"""
+
+
+def format_user_cmd_request(user_input: str) -> str:
+    user_input.replace('"', "'")
+    return f"""User: Provide appropriate command-line commands that can be executed on a {platform.platform()} machine to: {user_input}."""
+
+
+BLOOM_EXAMPLE_CMDS = [
+    format_user_cmd_request("install conda"),
+    f"""Assistant: {conda_output_example}""",
+    format_user_cmd_request(
+        "search ~/Documents directory for any .py file that begins with 'test'"
+    ),
+    f"""Assistant: {search_output_example}""",
+]
 
 
 def model_command(user_input: str, console: "Console") -> list:
     model = "bigscience/bloom"
     client = InferenceAPIClient(model)
-    MAX_RESPONSE_TOKENS = 128
+    MAX_RESPONSE_TOKENS = 192
+
+    messages = copy.deepcopy(BLOOM_EXAMPLE_CMDS)
+    messages.append(format_user_cmd_request(user_input))
+
+    model_input = model_input = (
+        BLOOM_CMD_PROMPT + "\n" + "\n".join(messages) + "\nAssistant:"
+    )
+
+    # console.log(model_input)
+    with console.status("[bold blue]Decoding request") as _:
+        try:
+            response = client.generate(
+                model_input, max_new_tokens=MAX_RESPONSE_TOKENS
+            ).generated_text
+        except errors.RateLimitExceededError:
+            console.print(
+                "[bold red]Hugging Face Inference API rate limit exceeded. Please try again later or set a Hugging Face API key. [/bold red]"
+            )
+            sys.exit(-1)
+        except errors.BadRequestError:
+            console.print(
+                "[bold red]Hugging Face Inference API returned a bad request. Check your Hugging Face API key.[/bold red]"
+            )
+            sys.exit(-1)
+        except requests.exceptions.ReadTimeout:
+            console.print(
+                "[bold red]Hugging Face Inference API request timed out. Try again later.[/bold red]"
+            )
+            sys.exit(-1)
+
+    # clean up response
+    idx = response.find("User:")
+    if idx > 0:
+        response = response[:idx].replace("\n", "")
+    response = response.strip()
+    # console.log(response)
+    return response
+
+
+BLOOM_CHAT_PROMPT = """The following is a conversation with a software development expert chatbot. 
+    The chatbot should be able to understand and respond to questions and statements about a variety of topics related to Computer Science and Software Development. 
+    The chatbot is conversational, flexible, and should be able to engage in casual, friendly conversation to assist the user.
+    The chatbot should also be able to maintain context across multiple turns of conversation.\n"""
+
+# examples created using ChatGPT output
+raw_chat_msgs = [
+    "User: What is the difference between x86 and ARM architecture?",
+    """Assistant: x86 and ARM are two different processor architectures used in modern computing devices. They have different instruction sets, 
+    with x86 using a CISC instruction set and ARM using a RISC instruction set. x86 processors typically have higher clock speeds and can execute more instructions per clock cycle, while ARM processors are more power-efficient.
+    x86 processors are compatible with a wide range of operating systems, while ARM processors are commonly used in mobile devices and are generally less expensive than x86 processors.""",
+    "User: What are LDFLAGS in a Makefile?",
+    """Assistant, LDFLAGS is a variable used in Makefiles that contains linker flags or options to pass to the linker program. 
+    Linker flags control the behavior of the linker, which is responsible for linking together object files into an executable or library file. 
+    LDFLAGS can be used to specify library paths, libraries to link against, and other linker options such as optimization flags or debug information. 
+    By setting LDFLAGS in a Makefile, you can customize the linking process and provide additional options to the linker.""",
+    "User: What are some other flags?",
+    """Assistant: In addition to LDFLAGS, other commonly used flags in Makefiles include CFLAGS for C compiler options, CPPFLAGS for C preprocessor options, CC for specifying the C compiler, ARFLAGS for archive tool options, and LDLIBS for specifying libraries to link against. 
+    These flags can be used to customize the build process and provide additional options to the compiler, linker, and other tools used in the build. Makefiles can be quite complex, and the use of flags and variables helps to manage the build process and ensure that it is repeatable and consistent.""",
+    "User: What is JIT?",
+    """Assistant: A JIT (Just-In-Time) compiler is a type of compiler used in some programming languages that compiles code during runtime, rather than before the program is run. 
+    JIT compilers can optimize the code based on the actual runtime behavior of the program, resulting in faster execution times. 
+    JIT compilers are commonly used in languages such as Java, JavaScript, and .NET.""",
+    # "User: What is the difference between a compiler and an interpreter?",
+    # """Assistant: A compiler and an interpreter are both programs that translate code written in a high-level programming language into machine-readable code.
+    # The main difference is that a compiler translates the entire code into machine code at once, while an interpreter executes the code line by line.
+    # Compilers generate faster code, while interpreters provide more flexibility for debugging and interactivity.""",
+]
+
+BASE_INPUT_CHAT_MSGS = [re.sub(" +", " ", msg) for msg in raw_chat_msgs]
+
+
+def format_bloom_chat_input(messages: list) -> str:
+    model_input = BLOOM_CHAT_PROMPT + "\n" + "\n".join(messages) + "\nAssistant:"
+    return model_input
+
+
+def format_user_input(user_input: str) -> str:
+    return f"""User: {user_input}"""
+
+
+def format_assistant_output(output: str) -> str:
+    return f"""Assistant: {output}"""
+
+
+def get_model_chat_response(
+    user_input: str, console: "Console", input_messages: list, api_token: str
+) -> list:
+    model = "bigscience/bloom"
+    client = InferenceAPIClient(model, token=api_token)
+    MAX_RESPONSE_TOKENS = 192
 
     panel_width = min(console.width, config.DEFAULT_COLUMN_WIDTH)
 
-    # TODO add context size + token reduction for hugging-face
-    # TODO add prior context
-    # TODO see if can get explanations working
+    input_messages.append(format_user_input(user_input))
 
-    model_input = format_bloom_input(user_input)
+    model_input = format_bloom_chat_input(input_messages)
+    # console.log(model_input)
 
-    with console.status("[bold blue]Decoding request") as _:
-        response = client.generate(
-            model_input, max_new_tokens=MAX_RESPONSE_TOKENS
-        ).generated_text
+    output_panel = Panel(
+        "",
+        title="[bold blue]DeveloperGPT[/bold blue]",
+        title_align="left",
+        width=panel_width,
+    )
 
-    # console.log(response)
+    output_text = ""
+    try:
+        with Live(output_panel, refresh_per_second=4):
+            exit = False
+            for response in client.generate_stream(
+                model_input, max_new_tokens=MAX_RESPONSE_TOKENS
+            ):
+                if not response.token.special:
+                    output_text += response.token.text
+                    # stop generation once we hit "User:"
+                    idx = output_text.find("User:")
+                    if idx > 0:
+                        output_text = output_text[:idx].strip()
+                        exit = True
 
-    # only get first response - responses are delinated by "\n\n"
-    cmds = response.split("\n\n")[0]
+                    output_panel.renderable = Markdown(
+                        output_text, inline_code_theme="monokai"
+                    )
 
-    # filter cmd output
-    cmd_strings = []
-    for c in cmds.split("\n"):
-        if any(char.isalnum() for char in c):
-            c = c.strip()
-            c = re.sub(r"^(\$+)", "", c)  # remove leading $
-            cmd_strings.append(c)
+                    if exit:
+                        break
+    except errors.RateLimitExceededError:
+        console.print(
+            "[bold red]Hugging Face Inference API rate limit exceeded. Please try again later or set a Hugging Face API key. [/bold red]"
+        )
+        sys.exit(-1)
+    except errors.BadRequestError:
+        console.print(
+            "[bold red]Hugging Face Inference API returned a bad request. Check your Hugging Face API key.[/bold red]"
+        )
+        sys.exit(-1)
 
-    utils.pretty_print_commands(cmd_strings, console, panel_width)
+    input_messages.append(format_assistant_output(output_text))
 
-    return cmd_strings
+    if len(input_messages) > 10:
+        # remove oldest 1 user/assistant output pair
+        input_messages.pop(0)
+        input_messages.pop(0)
+
+    return input_messages
