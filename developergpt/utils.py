@@ -3,10 +3,12 @@ DeveloperGPT by luo-anthony
 """
 
 
+import json
 import os
 import sys
 
 import pyperclip
+import requests
 import tiktoken
 from prompt_toolkit.completion import Completer, Completion
 from rich.console import Console
@@ -33,6 +35,52 @@ def pretty_print_commands(commands: list, console: "Console", panel_width: int):
             width=panel_width,
         )
     )
+
+
+def print_command_response(model_output: str, console: "Console"):
+    if not model_output:
+        return []
+
+    panel_width = min(console.width, config.DEFAULT_COLUMN_WIDTH)
+
+    try:
+        output_data = json.loads(model_output)
+    except json.decoder.JSONDecodeError:
+        console.print(
+            "[bold red]Error: Could not parse model response properly[/bold red]"
+        )
+        console.log(model_output)
+        return []
+
+    if output_data.get("error", 0) or "commands" not in output_data:
+        console.print(
+            "[bold red]Error: Could not find commands for this request[/bold red]"
+        )
+        return []
+
+    commands = output_data.get("commands", {})
+    cmd_strings = [cmd.get("cmd_to_execute", "") for cmd in commands]
+
+    # print all the commands in a panel
+    pretty_print_commands(cmd_strings, console, panel_width)
+
+    # print all the explanations in a panel
+    explanation_items = []
+    for cmd in commands:
+        explanation_items.extend([f"- {c}" for c in cmd.get("cmd_explanations", [])])
+        explanation_items.extend([f"\t- {c}" for c in cmd.get("arg_explanations", [])])
+
+    arg_out = Markdown("\n".join(explanation_items))
+
+    console.print(
+        Panel(
+            arg_out,
+            title="[bold blue]Explanation[/bold blue]",
+            title_align="left",
+            width=panel_width,
+        )
+    )
+    return cmd_strings
 
 
 def copy_comands_to_cliboard(commands: list):
@@ -182,3 +230,11 @@ class PathCompleter(Completer):
                     display=os.path.basename(completion),
                     start_position=-len(text),
                 )
+
+
+def check_connectivity(url="http://www.google.com", timeout=8):
+    try:
+        _ = requests.get(url, timeout=timeout)
+        return True
+    except requests.ConnectionError:
+        return False

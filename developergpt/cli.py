@@ -58,21 +58,31 @@ def handle_api_error(f):
 @click.pass_context
 def main(ctx, temperature, model):
     model = model.lower().strip()
+    if not utils.check_connectivity():
+        console.print(
+            "[bold red]No internet connection. Please check your internet connection and try again.[/bold red]"
+        )
+        sys.exit(-1)
+
     if model not in config.SUPPORTED_MODELS:
         console.print(
             f"""[bold red]Model {model} is not supported. 
             Supported models: {",".join(config.SUPPORTED_MODELS)}[/bold red]"""
         )
         sys.exit(-1)
-    if model == config.GPT35:
-        openai.api_key = config.get_environ_key(config.OPEN_AI_API_KEY, console)
-    elif model == config.BLOOM:
-        console.print(
-            "[bold yellow]Using Bloom 176B model: some features may not be supported and results may not be as good as using GPT-3.5.[/bold yellow]"
-        )
-        # we don't need the api key for bloom yet
 
     ctx.ensure_object(dict)
+    if model == config.GPT35:
+        openai.api_key = config.get_environ_key(config.OPEN_AI_API_KEY, console)
+        openai_adapter.check_open_ai_key(console)
+    elif model == config.BLOOM:
+        ctx.obj["api_key"] = config.get_environ_key_optional(
+            config.HUGGING_FACE_API_KEY, console
+        )
+        console.print(
+            "[bold yellow]Using Bloom 176B model: some features may have unexpected behavior and results may not be as good as using GPT-3.5.[/bold yellow]"
+        )
+
     ctx.obj["temperature"] = temperature
     ctx.obj["model"] = model
 
@@ -81,19 +91,12 @@ def main(ctx, temperature, model):
 @click.pass_context
 @handle_api_error
 def chat(ctx):
-    # TODO save previous conversations like the web interface does?
-    if ctx.obj["model"] != config.GPT35:
-        console.print(
-            f"""[bold red]Model {ctx.obj["model"]} is not supported for chat. 
-            Supported models: {config.GPT35}[/bold red]"""
-        )
-        sys.exit(-1)
+    model = ctx.obj["model"]
 
-    MODEL = "gpt-3.5-turbo"
-    MAX_TOKENS = 4000
-    RESERVED_OUTPUT_TOKENS = 1024
-    MAX_INPUT_TOKENS = MAX_TOKENS - RESERVED_OUTPUT_TOKENS
-    input_messages = [openai_adapter.INITIAL_CHAT_SYSTEM_MSG]
+    if model == config.GPT35:
+        input_messages = [openai_adapter.INITIAL_CHAT_SYSTEM_MSG]
+    elif model == config.BLOOM:
+        input_messages = huggingface_adapter.BASE_INPUT_CHAT_MSGS
     console.print("[gray]Type 'quit' to exit the chat[/gray]")
     while True:
         user_input = utils.prompt_user_input(
@@ -103,15 +106,15 @@ def chat(ctx):
         if len(user_input) == 0:
             continue
 
-        input_messages.append({"role": "user", "content": user_input})
-        input_messages, n_input_tokens = utils.check_reduce_context(
-            input_messages, MAX_INPUT_TOKENS, MODEL, ctx_removal_index=1
-        )
-        n_output_tokens = max(RESERVED_OUTPUT_TOKENS, MAX_TOKENS - n_input_tokens)
-        full_response = openai_adapter.get_model_chat_response(
-            MODEL, console, input_messages, n_output_tokens, ctx.obj["temperature"]
-        )
-        input_messages.append({"role": "assistant", "content": full_response})
+        if model == config.GPT35:
+            input_messages = openai_adapter.get_model_chat_response(
+                user_input, console, input_messages, ctx.obj["temperature"]
+            )
+        elif model == config.BLOOM:
+            api_token = ctx.obj.get("api_key", None)
+            input_messages = huggingface_adapter.get_model_chat_response(
+                user_input, console, input_messages, api_token
+            )
 
 
 kb = KeyBindings()
@@ -139,6 +142,11 @@ def cmd(ctx):
 
     console.print("[gray]Type 'quit' to exit[/gray]")
 
+    if model == config.BLOOM:
+        console.print(
+            "[bold yellow]WARNING: Bloom 176B model command outputs are less accurate than GPT-3.5. Check all commands before running them.[/bold yellow]"
+        )
+
     while True:
         user_input = utils.prompt_user_input(
             input_request,
@@ -152,14 +160,16 @@ def cmd(ctx):
             continue
 
         if model == config.GPT35:
-            commands = openai_adapter.model_command(user_input, console, input_messages)
+            model_output = openai_adapter.model_command(
+                user_input, console, input_messages
+            )
         elif model == config.BLOOM:
-            commands = huggingface_adapter.model_command(user_input, console)
+            model_output = huggingface_adapter.model_command(user_input, console)
 
+        commands = utils.print_command_response(model_output, console)
         if not commands:
             continue
 
-        # TODO: make this look nicer
         # Give user options to revise query, execute command(s), or quit
         options = [
             "Revise Query",
@@ -170,7 +180,6 @@ def cmd(ctx):
         questions = [
             inquirer.List("Next", message="What would you like to do?", choices=options)
         ]
-
         selected_option = inquirer.prompt(questions)["Next"]
 
         if selected_option == "Revise Query":
@@ -203,6 +212,13 @@ def cmd(ctx):
 @click.pass_context
 def test(ctx):
     pass
+    # while True:
+    #     user_input = utils.prompt_user_input(
+    #         "Chat: ", session, console, auto_suggest=AutoSuggestFromHistory()
+    #     )
+
+    #     if len(user_input) == 0:
+    #         continue
 
 
 @click.command(help="Give feedback")
