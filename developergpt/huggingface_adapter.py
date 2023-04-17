@@ -16,53 +16,35 @@ from rich.panel import Panel
 # using: https://pypi.org/project/text-generation/
 from text_generation import InferenceAPIClient, errors
 
-from developergpt import config
+from developergpt import config, utils
 
 # TODO: add more hugging_face models: flan-ul2, Vicuna-13B?
 
 
 # TODO change the output format so that it doesn't use JSON and we don't need to deal with weird escaping issues with regex output
 BLOOM_CMD_PROMPT = """The following is a software development command line system that allows a user to get the command(s) to execute their request in natural language. 
-    The system gives the user a series of commands to be executed for the given platform in JSON format with explanations.\n"""
+    The system gives the user a series of commands to be executed for the given platform in a set format with explanations.\n"""
 
-conda_output_example = """
-    {
-        "error": 0,
-        "commands": [
-            {
-                "cmd_to_execute": "curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh",
-                "cmd_explanations": ["The `curl` command is used to issue web requests, e.g. download web pages."],
-                "arg_explanations": [
-                                        "`-O` specifies that we want to save the response to a file.",
-                                        "`https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh` is the URL of the file we want to download."
-                                    ]
-            },
-            {
-                "cmd_to_execute": "bash Miniconda3-latest-MacOSX-x86_64.sh",
-                "cmd_explanations": ["The `bash` command is used to execute shell scripts."],
-                "arg_explanations": ["`Miniconda3-latest-MacOSX-x86_64.sh` is the name of the file we want to execute."]
-            }
-        ]
-    }
+conda_output_example = """\n
+- `curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh`\n
+- `bash Miniconda3-latest-MacOSX-x86_64.sh`\n
+
+\n**Explanation**\n
+- The `curl` command is used to issue web requests, e.g. download web pages.\n
+\t- `-O` specifies that we want to save the response to a file.\n
+\t- `https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh` is the URL of the file we want to download.\n
+- The `bash` command is used to execute shell scripts.\n
+\t- `Miniconda3-latest-MacOSX-x86_64.sh` is the name of the file we want to execute.\n
 """
 
-search_output_example = """
-    {
-        "error" : 0,
-        "commands": [
-            {
-                "cmd_to_execute": "find ~/Documents/ -name 'test*.py'",
-                "cmd_explanations": ["`find` is used to list files."],
-                "arg_explanations": [
-                                        "``~/Documents` specifies the folder to search in.",
-                                        "`-name 'test.py'` specifies that we want to search for files starting with `test` and ending with `.py`."
-                                    ]
-            }
-        ]
-    }
-    """
+search_output_example = """\n
+- `find ~/Documents/ -name 'test*.py'`\n
 
-unknown_query_output_example_one = """{"error": 1}"""
+\n**Explanation**\n
+- `find` is used to list files.\n
+\t- `~/Documents` specifies the folder to search in.\n
+\t- `-name 'test.py'` specifies that we want to search for files starting with `test` and ending with `.py`.\n
+"""
 
 
 def format_user_cmd_request(user_input: str) -> str:
@@ -73,6 +55,8 @@ def format_user_cmd_request(user_input: str) -> str:
 BLOOM_EXAMPLE_CMDS = [
     format_user_cmd_request("install conda"),
     f"""Assistant: {conda_output_example}""",
+    format_user_cmd_request("the quick brown fox jumps"),
+    f"""Assistant: {utils.ERROR_CODE}""",
     format_user_cmd_request(
         "search ~/Documents directory for any .py file that begins with 'test'"
     ),

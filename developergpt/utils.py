@@ -3,8 +3,8 @@ DeveloperGPT by luo-anthony
 """
 
 
-import json
 import os
+import re
 import sys
 
 import pyperclip
@@ -17,13 +17,31 @@ from rich.panel import Panel
 
 from developergpt import config
 
+ERROR_CODE = "[ERROR]"
 
-def pretty_print_commands(commands: list, console: "Console", panel_width: int):
-    # print all the commands in a panel
-    commands_format = "\n\n".join([f"""- `{c}`""" for c in commands])
+EXPLANATION_DELIMITOR = "**Explanation**\n"
+
+
+def pretty_print_cmd_output(model_output: str, console: "Console"):
+    if not model_output:
+        return []
+
+    if ERROR_CODE in model_output:
+        console.print(
+            "[bold red]Error: Could not find commands for this request[/bold red]"
+        )
+        return []
+
+    panel_width = min(console.width, config.DEFAULT_COLUMN_WIDTH)
+
+    explantion_idx = model_output.find(EXPLANATION_DELIMITOR)
+    if explantion_idx == -1:
+        return []
+
+    commands, explanation = model_output.split(EXPLANATION_DELIMITOR)
 
     cmd_out = Markdown(
-        commands_format,
+        commands,
         inline_code_lexer="bash",
     )
 
@@ -36,51 +54,31 @@ def pretty_print_commands(commands: list, console: "Console", panel_width: int):
         )
     )
 
-
-def print_command_response(model_output: str, console: "Console"):
-    if not model_output:
-        return []
-
-    panel_width = min(console.width, config.DEFAULT_COLUMN_WIDTH)
-
-    try:
-        output_data = json.loads(model_output)
-    except json.decoder.JSONDecodeError:
-        console.print(
-            "[bold red]Error: Could not parse model response properly[/bold red]"
-        )
-        console.log(model_output)
-        return []
-
-    if output_data.get("error", 0) or "commands" not in output_data:
-        console.print(
-            "[bold red]Error: Could not find commands for this request[/bold red]"
-        )
-        return []
-
-    commands = output_data.get("commands", {})
-    cmd_strings = [cmd.get("cmd_to_execute", "") for cmd in commands]
-
-    # print all the commands in a panel
-    pretty_print_commands(cmd_strings, console, panel_width)
-
-    # print all the explanations in a panel
-    explanation_items = []
-    for cmd in commands:
-        explanation_items.extend([f"- {c}" for c in cmd.get("cmd_explanations", [])])
-        explanation_items.extend([f"\t- {c}" for c in cmd.get("arg_explanations", [])])
-
-    arg_out = Markdown("\n".join(explanation_items))
+    explanation_out = Markdown(explanation.strip())
 
     console.print(
         Panel(
-            arg_out,
+            explanation_out,
             title="[bold blue]Explanation[/bold blue]",
             title_align="left",
             width=panel_width,
         )
     )
-    return cmd_strings
+
+    console.log(commands)
+
+    def extract_command(cmd: str) -> str:
+        found = re.search(r"- `(.+)`", cmd)
+        if not found:
+            return ""
+        else:
+            return str(found.group(1))
+
+    cmd_list = [extract_command(c) for c in commands.split("\n") if len(c.strip())]
+
+    console.log(cmd_list)
+
+    return cmd_list
 
 
 def copy_comands_to_cliboard(commands: list):

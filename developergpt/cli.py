@@ -169,7 +169,8 @@ def cmd(ctx):
                 user_input, console, api_token
             )
 
-        commands = utils.print_command_response(model_output, console)
+        commands = utils.pretty_print_cmd_output(model_output, console)
+
         if not commands:
             continue
 

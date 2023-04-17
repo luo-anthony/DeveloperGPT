@@ -13,74 +13,42 @@ from rich.panel import Panel
 
 from developergpt import config, utils
 
-json_cmd_format = """
-    {
-        "input": "<user input>",
-        "error": 0,
-        "commands": [
-            {
-                "seq": <Order of Command>,
-                "cmd_to_execute": "<commands and arguments to execute>",
-                "cmd_explanations": ["<explanation of command 1>", "<explantion of command 2>", ...],
-                "arg_explanations": ["<explanation of argument 1>", "<explanation of argument 2>", ...]
-            },
-            {
-                "seq": <Order of Command>,
-                "cmd_to_execute": "<commands and arguments to execute>",
-                "cmd_explanations": ["<explanation of command 1>", "<explantion of command 2>", ...],
-                "arg_explanations": ["<explanation of argument 1>", "<explanation of argument 2>", ...]
-            }
-        ]
-    }
-    """
+cmd_format = """
+- `<command and arguments to execute>`\n
+- `<command and arguments to execute>`\n
+- `<command and arguments to execute>`\n
 
-json_invalid_format = """{"input": "<user input>", "error": 1}"""
+\n**Explanation**\n
+- <explanation of command 1>\n
+\t- <explanation of argument 1>\n
+\t- <explanation of argument 2>\n
+- <explanation of command 2>\n
+\t- <explanation of argument 1>\n
+- <explanation of command 3>\n
+\t- <explanation of argument 1>\n
+"""
 
 conda_output_example = """
-    {
-        "input": "install conda",
-        "error": 0,
-        "commands": [
-            {
-                "seq": 1,
-                "cmd_to_execute": "curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh",
-                "cmd_explanations": ["The `curl` command is used to issue web requests, e.g. download web pages."],
-                "arg_explanations": [
-                                        "`-O` specifies that we want to save the response to a file.",
-                                        "`https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh` is the URL of the file we want to download."
-                                    ]
-            },
-            {
-                "seq": 2,
-                "cmd_to_execute": "bash Miniconda3-latest-MacOSX-x86_64.sh",
-                "cmd_explanations": ["The `bash` command is used to execute shell scripts."],
-                "arg_explanations": ["`Miniconda3-latest-MacOSX-x86_64.sh` is the name of the file we want to execute."]
-            }
-        ]
-    }
-    """
+- `curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh`\n
+- `bash Miniconda3-latest-MacOSX-x86_64.sh`\n
+
+\n**Explanation**\n
+- The `curl` command is used to issue web requests, e.g. download web pages.\n
+\t- `-O` specifies that we want to save the response to a file.\n
+\t- `https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh` is the URL of the file we want to download.\n
+- The `bash` command is used to execute shell scripts.\n
+\t- `Miniconda3-latest-MacOSX-x86_64.sh` is the name of the file we want to execute.\n
+"""
 
 search_output_example = """
-    {
-        "input": "search the ~/Documents/ directory for any .py file that begins with 'test'",
-        "error" : 0,
-        "commands": [
-            {
-                "seq": 1,
-                "cmd_to_execute": "find ~/Documents/ -name 'test*.py'",
-                "cmd_explanations": ["`find` is used to list files."],
-                "arg_explanations": [
-                                        "``~/Documents` specifies the folder to search in.",
-                                        "`-name 'test.py'` specifies that we want to search for files starting with `test` and ending with `.py`."
-                                    ]
-            }
-        ]
-    }
-    """
+- `find ~/Documents/ -name 'test*.py'`\n
 
-unknown_query_output_example_one = (
-    """{"input": "the quick brown fox jumped over", "error": 1}"""
-)
+\n**Explanation**\n
+- `find` is used to list files.\n
+\t- `~/Documents` specifies the folder to search in.\n
+\t- `-name 'test.py'` specifies that we want to search for files starting with `test` and ending with `.py`.\n
+"""
+
 
 INITIAL_CHAT_SYSTEM_MSG = {
     "role": "system",
@@ -112,9 +80,9 @@ INITIAL_USER_CMD_MSG = {
             For each command, explain the command and any arguments used.
             Try to find the simplest command(s) that can be used to execute the request.
 
-            If the request is valid, format each command output in the following JSON format: {json_cmd_format}
+            If the request is valid, format each command output in the following format: {cmd_format}
 
-            If the request is invalid, please return the following JSON format: {json_invalid_format}
+            If the request is invalid, please return the following format: {utils.ERROR_CODE}
             """,
 }
 
@@ -144,7 +112,7 @@ EXAMPLE_TWO = (
 
 NEGATIVE_EXAMPLE_ONE = (
     format_user_request("the quick brown fox jumped over"),
-    format_assistant_response(unknown_query_output_example_one),
+    format_assistant_response(utils.ERROR_CODE),
 )
 
 BASE_INPUT_CMD_MSGS = [
@@ -245,14 +213,3 @@ def check_open_ai_key(console: "Console") -> None:
             f"[bold red]Error: Invalid OpenAI API key. Check your {config.OPEN_AI_API_KEY} environment variable.[/bold red]"
         )
         sys.exit(-1)
-
-
-# def format_model_output(text: str) -> str:
-#     """Format the model output to be more readable."""
-#     text = re.sub(
-#         r"```(.+?)```", "[syntax]" + r"\1" + "[/syntax]", text, flags=re.DOTALL
-#     )
-#     text = re.sub(r"`(.+?)`", "[syntax]" + r"\1" +
-#                   "[/syntax]", text, flags=re.DOTALL)
-#     text.replace("```", "[syntax]")
-#     return text
