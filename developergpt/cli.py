@@ -97,6 +97,7 @@ def chat(ctx):
         input_messages = [openai_adapter.INITIAL_CHAT_SYSTEM_MSG]
     elif model == config.BLOOM:
         input_messages = huggingface_adapter.BASE_INPUT_CHAT_MSGS
+        api_token = ctx.obj.get("api_key", None)
     console.print("[gray]Type 'quit' to exit the chat[/gray]")
     while True:
         user_input = utils.prompt_user_input(
@@ -111,7 +112,6 @@ def chat(ctx):
                 user_input, console, input_messages, ctx.obj["temperature"]
             )
         elif model == config.BLOOM:
-            api_token = ctx.obj.get("api_key", None)
             input_messages = huggingface_adapter.get_model_chat_response(
                 user_input, console, input_messages, api_token
             )
@@ -146,6 +146,7 @@ def cmd(ctx):
         console.print(
             "[bold yellow]WARNING: Bloom 176B model command outputs are less accurate than GPT-3.5. Check all commands before running them.[/bold yellow]"
         )
+        api_token = ctx.obj.get("api_key", None)
 
     while True:
         user_input = utils.prompt_user_input(
@@ -164,7 +165,9 @@ def cmd(ctx):
                 user_input, console, input_messages
             )
         elif model == config.BLOOM:
-            model_output = huggingface_adapter.model_command(user_input, console)
+            model_output = huggingface_adapter.model_command(
+                user_input, console, api_token
+            )
 
         commands = utils.print_command_response(model_output, console)
         if not commands:

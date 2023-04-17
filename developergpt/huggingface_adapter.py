@@ -80,9 +80,12 @@ BLOOM_EXAMPLE_CMDS = [
 ]
 
 
-def model_command(user_input: str, console: "Console") -> str:
+TIMEOUT = 25  # seconds
+
+
+def model_command(user_input: str, console: "Console", api_token: str) -> str:
     model = "bigscience/bloom"
-    client = InferenceAPIClient(model)
+    client = InferenceAPIClient(model, token=api_token, timeout=TIMEOUT)
     MAX_RESPONSE_TOKENS = 256
 
     messages = copy.deepcopy(BLOOM_EXAMPLE_CMDS)
@@ -149,14 +152,18 @@ raw_chat_msgs = [
     "User: What are some other flags?",
     """Assistant: In addition to LDFLAGS, other commonly used flags in Makefiles include CFLAGS for C compiler options, CPPFLAGS for C preprocessor options, CC for specifying the C compiler, ARFLAGS for archive tool options, and LDLIBS for specifying libraries to link against. 
     These flags can be used to customize the build process and provide additional options to the compiler, linker, and other tools used in the build. Makefiles can be quite complex, and the use of flags and variables helps to manage the build process and ensure that it is repeatable and consistent.""",
+    "User: Can you give me an example of a variadic template in C++?",
+    """Assistant: A variadic template is a template that can accept a variable number of arguments. Here is an example\n
+    ```cpp\n
+    template <typename... Args>\n
+    void print(Args... args) {\n
+    \t(std::cout << ... << args) << std::endl;\n
+    }\n
+    ```""",
     "User: What is JIT?",
     """Assistant: A JIT (Just-In-Time) compiler is a type of compiler used in some programming languages that compiles code during runtime, rather than before the program is run. 
     JIT compilers can optimize the code based on the actual runtime behavior of the program, resulting in faster execution times. 
     JIT compilers are commonly used in languages such as Java, JavaScript, and .NET.""",
-    # "User: What is the difference between a compiler and an interpreter?",
-    # """Assistant: A compiler and an interpreter are both programs that translate code written in a high-level programming language into machine-readable code.
-    # The main difference is that a compiler translates the entire code into machine code at once, while an interpreter executes the code line by line.
-    # Compilers generate faster code, while interpreters provide more flexibility for debugging and interactivity.""",
 ]
 
 BASE_INPUT_CHAT_MSGS = [re.sub(" +", " ", msg) for msg in raw_chat_msgs]
@@ -179,8 +186,8 @@ def get_model_chat_response(
     user_input: str, console: "Console", input_messages: list, api_token: str
 ) -> list:
     model = "bigscience/bloom"
-    client = InferenceAPIClient(model, token=api_token)
-    MAX_RESPONSE_TOKENS = 192
+    client = InferenceAPIClient(model, token=api_token, timeout=TIMEOUT)
+    MAX_RESPONSE_TOKENS = 384
 
     panel_width = min(console.width, config.DEFAULT_COLUMN_WIDTH)
 
@@ -217,6 +224,8 @@ def get_model_chat_response(
 
                     if exit:
                         break
+                else:
+                    console.log(response.token)
     except errors.RateLimitExceededError:
         console.print(
             "[bold red]Hugging Face Inference API rate limit exceeded. Please try again later or set a Hugging Face API key. [/bold red]"
