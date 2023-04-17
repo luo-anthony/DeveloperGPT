@@ -91,6 +91,7 @@ INITIAL_CHAT_SYSTEM_MSG = {
                 helping to troubleshoot errors or bugs in code, answering general programming questions, and providing code snippets or examples.
 
                 Please keep your answers short and concise and use a suitable format for printing on the terminal. 
+                If you provide code snippets, use ```<language> to specify the language. 
             """,
 }
 
