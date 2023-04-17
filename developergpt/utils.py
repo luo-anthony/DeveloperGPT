@@ -40,8 +40,12 @@ def pretty_print_cmd_output(model_output: str, console: "Console"):
 
     commands, explanation = model_output.split(EXPLANATION_DELIMITOR)
 
+    commands = [c for c in commands.split("\n") if len(c.strip()) > 0]
+
+    command_print = "\n".join([f"- `{c}`" for c in commands])
+
     cmd_out = Markdown(
-        commands,
+        command_print,
         inline_code_lexer="bash",
     )
 
@@ -67,18 +71,18 @@ def pretty_print_cmd_output(model_output: str, console: "Console"):
 
     console.log(commands)
 
-    def extract_command(cmd: str) -> str:
-        found = re.search(r"- `(.+)`", cmd)
-        if not found:
-            return ""
-        else:
-            return str(found.group(1))
+    # def extract_command(cmd: str) -> str:
+    #     found = re.search(r"- `(.+)`", cmd)
+    #     if not found:
+    #         return ""
+    #     else:
+    #         return str(found.group(1))
 
-    cmd_list = [extract_command(c) for c in commands.split("\n") if len(c.strip())]
+    # cmd_list = [extract_command(c) for c in commands.split("\n") if len(c.strip())]
 
-    console.log(cmd_list)
+    # console.log(cmd_list)
 
-    return cmd_list
+    return commands
 
 
 def copy_comands_to_cliboard(commands: list):

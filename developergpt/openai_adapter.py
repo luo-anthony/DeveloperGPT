@@ -14,9 +14,9 @@ from rich.panel import Panel
 from developergpt import config, utils
 
 cmd_format = """
-- `<command and arguments to execute>`\n
-- `<command and arguments to execute>`\n
-- `<command and arguments to execute>`\n
+<command and arguments to execute>\n
+<command and arguments to execute>\n
+<command and arguments to execute>\n
 
 \n**Explanation**\n
 - <explanation of command 1>\n
@@ -29,8 +29,8 @@ cmd_format = """
 """
 
 conda_output_example = """
-- `curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh`\n
-- `bash Miniconda3-latest-MacOSX-x86_64.sh`\n
+curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh\n
+bash Miniconda3-latest-MacOSX-x86_64.sh\n
 
 \n**Explanation**\n
 - The `curl` command is used to issue web requests, e.g. download web pages.\n
@@ -41,12 +41,22 @@ conda_output_example = """
 """
 
 search_output_example = """
-- `find ~/Documents/ -name 'test*.py'`\n
+find ~/Documents/ -name 'test*.py'\n
 
 \n**Explanation**\n
 - `find` is used to list files.\n
 \t- `~/Documents` specifies the folder to search in.\n
 \t- `-name 'test.py'` specifies that we want to search for files starting with `test` and ending with `.py`.\n
+"""
+
+process_output_example = """
+ps -axm -o %mem,rss,comm | awk '$1 > 0.5 { printf("%.0fMB\\t%s\n", $2/1024, $3); }'\n
+
+\n**Explanation**\n
+- The `ps` command is used to list processes.\n
+\t- `axm` specifies that we want to list all processes.\n
+\t- `-o %mem,rss,comm` specifies that we want to output the memory usage, resident set size, and command name for each process.\n
+\t- `awk '$1 > 0.5 { printf("%.0fMB\t%s\n", $2/1024, $3); }'` is used to filter the output to only show processes using more than 50 MB of RAM.\n
 """
 
 
@@ -79,6 +89,7 @@ INITIAL_USER_CMD_MSG = {
             Do not include commands that require a yes/no response.
             For each command, explain the command and any arguments used.
             Try to find the simplest command(s) that can be used to execute the request.
+            If the command(s) have any terminal output, try to format the output in a way that is easy to read.
 
             If the request is valid, format each command output in the following format: {cmd_format}
 
@@ -110,6 +121,11 @@ EXAMPLE_TWO = (
     format_assistant_response(search_output_example),
 )
 
+EXAMPLE_THREE = (
+    format_user_request("List all processes using more than 50 MB of RAM"),
+    format_assistant_response(process_output_example),
+)
+
 NEGATIVE_EXAMPLE_ONE = (
     format_user_request("the quick brown fox jumped over"),
     format_assistant_response(utils.ERROR_CODE),
@@ -120,6 +136,7 @@ BASE_INPUT_CMD_MSGS = [
     INITIAL_USER_CMD_MSG,
     *EXAMPLE_ONE,
     *EXAMPLE_TWO,
+    *EXAMPLE_THREE,
     *NEGATIVE_EXAMPLE_ONE,
 ]
 
