@@ -86,7 +86,7 @@ TIMEOUT = 25  # seconds
 def model_command(user_input: str, console: "Console", api_token: str) -> str:
     model = "bigscience/bloom"
     client = InferenceAPIClient(model, token=api_token, timeout=TIMEOUT)
-    MAX_RESPONSE_TOKENS = 256
+    MAX_RESPONSE_TOKENS = 384
 
     messages = copy.deepcopy(BLOOM_EXAMPLE_CMDS)
     messages.append(format_user_cmd_request(user_input))
