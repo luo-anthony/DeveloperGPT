@@ -16,6 +16,7 @@ In our testing, GPT-3.5 (default) generally yields better results and is able to
 DeveloperGPT has two main features:
 #### 1. Natural Language to Terminal Commands
 **Supported Models:** GPT3.5 (default), BLOOM
+**Usage:** `developergpt cmd [your natural language command request]`
 ![Natural Language Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/cmddemo.gif)
 
 **NOTE:** The BLOOM model command output may not be accurate, especially for more complex commands. Using the BLOOM model may also result in unexpected or undefined behavior. 
@@ -24,6 +25,7 @@ With both models, it is always good practice to manually verify the command outp
 
 #### 2. Chat inside the Terminal
 **Supported Models:** GPT3.5 (default), BLOOM
+**Usage:** `developergpt chat`
 ![Chat Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/chatdemo.gif)
 
 **NOTE:** Chat moderation is **NOT** implemented - all your chat messages should follow the OpenAI and BLOOM terms of use. 
@@ -65,17 +67,20 @@ $ source ~/.zshenv
 # see available commands
 $ developergpt 
 
+# natural language to terminal commands using GPT-3.5 (default)
+$ developergpt cmd [your natural language command request]
+
+# natural language to terminal commands using GPT-3.5 (default) with prompt 
+$ developergpt cmd
+
 # chat with DeveloperGPT using GPT-3.5 (default)
 $ developergpt chat
-
-# natural language to terminal commands using GPT-3.5 (default)
-$ developergpt cmd
 
 # chat with DeveloperGPT using BLOOM model instead
 $ developergpt --model bloom chat
 
 # natural langauge to terminal commands using BLOOM model instead
-$ developergpt --model bloom cmd
+$ developergpt --model bloom cmd [natural language command request]
 
 # give feedback
 $ developergpt feedback

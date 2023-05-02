@@ -87,10 +87,15 @@ def main(ctx, temperature, model):
     ctx.obj["model"] = model
 
 
-@click.command(help="Chat with DeveloperGPT")
+@main.command(help="Chat with DeveloperGPT")
 @click.pass_context
+@click.argument("user_input", nargs=-1)
 @handle_api_error
-def chat(ctx):
+def chat(ctx, user_input):
+    if user_input:
+        user_input = str(" ".join(user_input))
+        session.history.append_string(user_input)
+
     model = ctx.obj["model"]
 
     if model == config.GPT35:
@@ -100,9 +105,10 @@ def chat(ctx):
         api_token = ctx.obj.get("api_key", None)
     console.print("[gray]Type 'quit' to exit the chat[/gray]")
     while True:
-        user_input = utils.prompt_user_input(
-            "Chat: ", session, console, auto_suggest=AutoSuggestFromHistory()
-        )
+        if not user_input:
+            user_input = utils.prompt_user_input(
+                "Chat: ", session, console, auto_suggest=AutoSuggestFromHistory()
+            )
 
         if len(user_input) == 0:
             continue
@@ -115,6 +121,8 @@ def chat(ctx):
             input_messages = huggingface_adapter.get_model_chat_response(
                 user_input, console, input_messages, api_token
             )
+
+        user_input = None
 
 
 kb = KeyBindings()
@@ -131,16 +139,19 @@ def _(event: KeyPressEvent):
     buff.validate_and_handle()
 
 
-@click.command(help="Execute commands using natural language")
+@main.command(help="Execute commands using natural language")
+@click.argument("user_input", nargs=-1)
 @click.pass_context
 @handle_api_error
-def cmd(ctx):
+def cmd(ctx, user_input):
     input_request = "\nDesired Command Request: "
+
+    if user_input:
+        user_input = str(" ".join(user_input))
+        session.history.append_string(user_input)
 
     model = ctx.obj["model"]
     input_messages = copy.deepcopy(openai_adapter.BASE_INPUT_CMD_MSGS)
-
-    console.print("[gray]Type 'quit' to exit[/gray]")
 
     if model == config.BLOOM:
         console.print(
@@ -148,15 +159,20 @@ def cmd(ctx):
         )
         api_token = ctx.obj.get("api_key", None)
 
+    if not user_input:
+        console.print("[gray]Type 'quit' to exit[/gray]")
+
     while True:
-        user_input = utils.prompt_user_input(
-            input_request,
-            session,
-            console,
-            completer=utils.PathCompleter(),
-            complete_style=CompleteStyle.MULTI_COLUMN,
-            key_bindings=kb,
-        )
+        if not user_input:
+            user_input = utils.prompt_user_input(
+                input_request,
+                session,
+                console,
+                completer=utils.PathCompleter(),
+                complete_style=CompleteStyle.MULTI_COLUMN,
+                key_bindings=kb,
+            )
+
         if len(user_input) == 0:
             continue
 
@@ -187,6 +203,7 @@ def cmd(ctx):
 
         if selected_option == "Revise Query":
             input_request = "Revised Command Request: "
+            user_input = None
             continue
         elif selected_option == "Execute Command(s)":
             console.print("[bold blue]Executing command(s)...\n[/bold blue]")
@@ -211,7 +228,7 @@ def cmd(ctx):
         sys.exit(0)
 
 
-@click.command()
+# @main.command()
 @click.pass_context
 def test(ctx):
     pass
@@ -224,17 +241,12 @@ def test(ctx):
     #         continue
 
 
-@click.command(help="Give feedback")
+@main.command(help="Give feedback")
 def feedback():
     console.print(
         "Thanks for using DeveloperGPT! You can [bold blue][link=https://forms.gle/J36KbztsRAPHXnrKA]give feedback here[/link][/bold blue]!"
     )
 
-
-main.add_command(cmd)
-main.add_command(chat)
-main.add_command(feedback)
-# main.add_command(test)
 
 if __name__ == "__main__":
     main()
