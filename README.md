@@ -40,12 +40,11 @@ pip install -U developergpt
 
 
 #### OpenAI GPT-3.5 (Default)
-By default, DeveloperGPT uses the GPT-3.5 model from OpenAI. 
+By default, DeveloperGPT uses the GPT-3.5 model from OpenAI. To use this model, you will need an OpenAI API Key.
 
-Get your own OpenAI API Key: https://platform.openai.com/account/api-keys
-
+1. Get your own OpenAI API Key: https://platform.openai.com/account/api-keys
+2. Set your OpenAI API Key as an environment variable. You only need to do this once. 
 ```bash
-# Do this once 
 # set OpenAI API Key (using zsh for example)
 $ echo 'export OPENAI_API_KEY=[your_key_here]' >> ~/.zshenv
 
@@ -54,11 +53,11 @@ $ source ~/.zshenv
 ```
 
 #### BLOOM
-To use the BLOOM model instead, you can optionally set up a [Hugging Face User Access](https://huggingface.co/settings/tokens) or [Inference API](https://huggingface.co/docs/api-inference/index) token. Setting up a token is not required (BLOOM model will work without any token or key), but it will allow you to make more requests without being rate limited. 
+To use the BLOOM model instead, you can optionally set up a [Hugging Face User Access](https://huggingface.co/settings/tokens) or [Inference API](https://huggingface.co/docs/api-inference/index) token as an environment variable using the steps below. Setting up a token is **not required (the BLOOM model will work without any token or key)**, but it will allow you to make more requests without being rate limited. 
 
 ```bash
-# Do this once 
-# set Hugging Face API token (using zsh for example)
+# [OPTIONAL] set Hugging Face API token (using zsh for example)
+# You only need to do this once
 $ echo 'export HUGGING_FACE_API_KEY=[your_key_here]' >> ~/.zshenv
 
 # reload the environment (or just quit and open a new terminal)
@@ -75,18 +74,36 @@ $ developergpt feedback
 ```
 
 #### Natural Language to Terminal Comands
+DeveloperGPT allows you to get and execute terminal commands using natural language. 
 ```bash
-# natural language to terminal commands using GPT-3.5 (default)
+# Natural Language to Terminal Commands using OpenAI GPT-3.5 (default)
 $ developergpt cmd [your natural language command request]
 
-# natural language to terminal commands using GPT-3.5 (default) with prompt  
-$ developergpt cmd
+# Natural Language to Terminal Commands using OpenAI GPT-3.5 (default) with prompt
+$ developergpt cmd 
 
-# natural langauge to terminal commands using BLOOM model instead
+# Example Usage
+$ developergpt cmd list all commits that contain the word "llm"
+```
+
+Use `developergpt --model bloom cmd` to use the BLOOM model instead of the GPT-3.5 model (used by default). 
+```bash
+# Natural Language to Terminal Commands using BLOOM model instead
 $ developergpt --model bloom cmd [your natural language command request]
 ```
 
+Use `developergpt cmd --fast` to get commands faster without any explanations (may be less accurate). 
+```bash
+# Fast Mode (GPT-3.5): Commands are given without explanation (may be less accurate)
+$ developergpt cmd --fast [your natural language command request]
+
+# Fast Mode (BLOOM): Commands are given without explanation (may be less accurate)
+$ developergpt --model bloom cmd --fast [your natural language command request]
+```
+
 #### Chat inside the Terminal
+DeveloperGPT allows you to chat with either the GPT-3.5 model or the BLOOM model in the terminal. 
+
 ```bash
 # chat with DeveloperGPT using GPT-3.5 (default)
 $ developergpt chat
@@ -102,14 +119,14 @@ You can monitor your OpenAI API usage here: https://platform.openai.com/account/
 
 DeveloperGPT uses the `gpt-3.5-turbo` model which is very cost efficient (1/10 the cost of models such as `text-davinci-003`). Based on preliminary testing, using DeveloperGPT should cost no more than 10 cents per day (assuming ~100 requests/day). 
 
-### Hugging-Face Usage (BLOOM)
+### Hugging-Face Inference API Usage (BLOOM)
 Currently, using the BLOOM model does not require a token and is free but rate limited. To avoid rate limit, you can set a token using the instructions above. 
 
 ## Contributing
 Read the [CONTRIBUTING.md](CONTRIBUTING.md) file.
 
 ### Future Roadmap
-- Add support for open-source models (Alpaca, Vicuna, Dolly, etc.)
+- Add support for more open-source models (Alpaca, Vicuna, LLAMA, etc.)
 
 ## Credit
 - Thanks to Hugging Face and the NLP community for open-source models and prompts! 

@@ -32,7 +32,7 @@ fmt:              ## Format code using black & isort.
 
 .PHONY: lint
 lint:             ## Run pep8, black, mypy linters.
-	$(ENV_PREFIX)flake8 --ignore=E501,W293,W291 developergpt/
+	$(ENV_PREFIX)flake8 --ignore=E501,W293,W291,W605 developergpt/
 	$(ENV_PREFIX)black -l 88 --check developergpt/
 	$(ENV_PREFIX)black -l 88 --check tests/
 	$(ENV_PREFIX)mypy --ignore-missing-imports developergpt/

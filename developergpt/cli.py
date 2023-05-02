@@ -123,10 +123,21 @@ def chat(ctx, user_input):
 
 @main.command(help="Execute commands using natural language")
 @click.argument("user_input", nargs=-1)
+@click.option(
+    "--fast",
+    is_flag=True,
+    default=False,
+    help="Get commands without command or argument explanations (less accurate)",
+)
 @click.pass_context
 @handle_api_error
-def cmd(ctx, user_input):
+def cmd(ctx, user_input, fast):
     input_request = "\nDesired Command Request: "
+
+    if fast:
+        console.print(
+            "[bold yellow]Using Fast Mode: Commands are given without explanation and may be less accurate[/bold yellow]"
+        )
 
     if user_input:
         user_input = str(" ".join(user_input))
@@ -158,13 +169,14 @@ def cmd(ctx, user_input):
             continue
 
         if model == config.GPT35:
-            model_output = openai_adapter.model_command(user_input, console)
+            model_output = openai_adapter.model_command(user_input, console, fast)
         elif model == config.BLOOM:
             model_output = huggingface_adapter.model_command(
-                user_input, console, api_token
+                user_input, console, api_token, fast
             )
+        user_input = None  # clear input for next iteration
 
-        commands = utils.print_command_response(model_output, console)
+        commands = utils.print_command_response(model_output, console, fast, model)
         if not commands:
             continue
 
@@ -182,7 +194,6 @@ def cmd(ctx, user_input):
 
         if selected_option == "Revise Query":
             input_request = "Revised Command Request: "
-            user_input = None
             continue
         elif selected_option == "Execute Command(s)":
             console.print("[bold blue]Executing command(s)...\n[/bold blue]")

@@ -2,6 +2,7 @@
 DeveloperGPT by luo-anthony
 """
 import os
+import platform
 import sys
 from typing import Optional
 
@@ -29,6 +30,8 @@ OPEN_AI_API_KEY = "OPENAI_API_KEY"
 HUGGING_FACE_API_KEY = "HUGGING_FACE_API_KEY"
 
 FEEDBACK_LINK = "https://forms.gle/J36KbztsRAPHXnrKA"
+
+USER_PLATFORM = platform.platform()
 
 
 def get_environ_key(keyname: str, console: Console) -> str:

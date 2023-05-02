@@ -2,8 +2,6 @@
 DeveloperGPT by luo-anthony
 """
 
-import copy
-import platform
 import re
 import sys
 
@@ -16,80 +14,71 @@ from rich.panel import Panel
 # using: https://pypi.org/project/text-generation/
 from text_generation import InferenceAPIClient, errors
 
-from developergpt import config
+from developergpt import config, few_shot_prompts
 
 BLOOM_CMD_PROMPT = """The following is a software development command line system that allows a user to get the command(s) to execute their request in natural language. 
-    The system gives the user a series of commands to be executed for the given platform in JSON format with explanations.\n"""
-
-conda_output_example = """
-    {
-        "error": 0,
-        "commands": [
-            {
-                "cmd_to_execute": "curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh",
-                "cmd_explanations": ["The `curl` command is used to issue web requests, e.g. download web pages."],
-                "arg_explanations": [
-                                        "`-O` specifies that we want to save the response to a file.",
-                                        "`https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh` is the URL of the file we want to download."
-                                    ]
-            },
-            {
-                "cmd_to_execute": "bash Miniconda3-latest-MacOSX-x86_64.sh",
-                "cmd_explanations": ["The `bash` command is used to execute shell scripts."],
-                "arg_explanations": ["`Miniconda3-latest-MacOSX-x86_64.sh` is the name of the file we want to execute."]
-            }
-        ]
-    }
-"""
-
-search_output_example = """
-    {
-        "error" : 0,
-        "commands": [
-            {
-                "cmd_to_execute": "find ~/Documents/ -name 'test*.py'",
-                "cmd_explanations": ["`find` is used to list files."],
-                "arg_explanations": [
-                                        "``~/Documents` specifies the folder to search in.",
-                                        "`-name 'test.py'` specifies that we want to search for files starting with `test` and ending with `.py`."
-                                    ]
-            }
-        ]
-    }
-    """
-
-
-def format_user_cmd_request(user_input: str) -> str:
-    user_input.replace('"', "'")
-    return f"""User: Provide appropriate command-line commands that can be executed on a {platform.platform()} machine to: {user_input}."""
-
-
-BLOOM_EXAMPLE_CMDS = [
-    format_user_cmd_request("install conda"),
-    f"""Assistant: {conda_output_example}""",
-    format_user_cmd_request(
-        "search ~/Documents directory for any .py file that begins with 'test'"
-    ),
-    f"""Assistant: {search_output_example}""",
-]
-
-
+    The system gives the user a series of commands to be executed for the given platform in Markdown format (escaping any special Markdown characters with \) along with explanations.\n"""
 TIMEOUT: int = 25  # seconds
 
 
-def model_command(user_input: str, console: Console, api_token: str) -> str:
+def format_user_cmd_request(
+    user_input: str, platform: str = config.USER_PLATFORM
+) -> str:
+    user_input.replace('"', "'")
+    return f"""User: Provide appropriate command-line commands that can be executed on a {platform} machine to: {user_input}."""
+
+
+def format_user_input(user_input: str) -> str:
+    return f"""User: {user_input}"""
+
+
+def format_assistant_output(output: str) -> str:
+    return f"""Assistant: {output}"""
+
+
+BLOOM_EXAMPLE_CMDS = [
+    format_user_cmd_request(
+        few_shot_prompts.CONDA_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
+    ),
+    format_assistant_output(few_shot_prompts.CONDA_OUTPUT_EXAMPLE),
+    format_user_cmd_request(
+        few_shot_prompts.SEARCH_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
+    ),
+    format_assistant_output(few_shot_prompts.SEARCH_OUTPUT_EXAMPLE),
+]
+
+BLOOM_EXAMPLE_CMDS_FAST = [
+    format_user_cmd_request(
+        few_shot_prompts.CONDA_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
+    ),
+    format_assistant_output(few_shot_prompts.CONDA_OUTPUT_EXAMPLE_MARKDOWN),
+    format_user_cmd_request(
+        few_shot_prompts.SEARCH_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
+    ),
+    format_assistant_output(few_shot_prompts.SEARCH_OUTPUT_EXAMPLE_MARKDOWN),
+    format_user_cmd_request(
+        few_shot_prompts.PROCESS_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
+    ),
+    format_assistant_output(few_shot_prompts.PROCESS_OUTPUT_EXAMPLE_MARKDOWN),
+]
+
+
+def model_command(
+    user_input: str, console: Console, api_token: str, fast_mode: bool
+) -> str:
     MODEL = "bigscience/bloom"
     client = InferenceAPIClient(MODEL, token=api_token, timeout=TIMEOUT)
     MAX_RESPONSE_TOKENS = 384
-
-    messages = copy.deepcopy(BLOOM_EXAMPLE_CMDS)
+    if fast_mode:
+        messages = list(BLOOM_EXAMPLE_CMDS_FAST)
+    else:
+        messages = list(BLOOM_EXAMPLE_CMDS)
     messages.append(format_user_cmd_request(user_input))
 
     model_input = model_input = (
         BLOOM_CMD_PROMPT + "\n" + "\n".join(messages) + "\nAssistant:"
     )
 
-    # console.log(model_input)
     with console.status("[bold blue]Decoding request") as _:
         try:
             exit = False
@@ -166,14 +155,6 @@ BASE_INPUT_CHAT_MSGS = [re.sub(" +", " ", msg) for msg in RAW_CHAT_MSGS]
 def format_bloom_chat_input(messages: list) -> str:
     model_input = BLOOM_CHAT_PROMPT + "\n" + "\n".join(messages) + "\nAssistant:"
     return model_input
-
-
-def format_user_input(user_input: str) -> str:
-    return f"""User: {user_input}"""
-
-
-def format_assistant_output(output: str) -> str:
-    return f"""Assistant: {output}"""
 
 
 def get_model_chat_response(
