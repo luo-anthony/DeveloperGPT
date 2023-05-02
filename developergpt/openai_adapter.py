@@ -1,7 +1,6 @@
 """
 DeveloperGPT by luo-anthony
 """
-import platform
 import sys
 from datetime import datetime
 
@@ -11,9 +10,9 @@ from rich.live import Live
 from rich.markdown import Markdown
 from rich.panel import Panel
 
-from developergpt import config, utils
+from developergpt import config, few_shot_prompts, utils
 
-json_cmd_format = """
+JSON_CMD_FORMAT = """
     {
         "input": "<user input>",
         "error": 0,
@@ -34,58 +33,20 @@ json_cmd_format = """
     }
     """
 
-json_invalid_format = """{"input": "<user input>", "error": 1}"""
-
-conda_output_example = """
+JSON_CMD_FORMAT_FAST = """
     {
-        "input": "install conda",
-        "error": 0,
-        "commands": [
-            {
-                "seq": 1,
-                "cmd_to_execute": "curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh",
-                "cmd_explanations": ["The `curl` command is used to issue web requests, e.g. download web pages."],
-                "arg_explanations": [
-                                        "`-O` specifies that we want to save the response to a file.",
-                                        "`https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh` is the URL of the file we want to download."
-                                    ]
-            },
-            {
-                "seq": 2,
-                "cmd_to_execute": "bash Miniconda3-latest-MacOSX-x86_64.sh",
-                "cmd_explanations": ["The `bash` command is used to execute shell scripts."],
-                "arg_explanations": ["`Miniconda3-latest-MacOSX-x86_64.sh` is the name of the file we want to execute."]
-            }
-        ]
+        "commands": ["<commands and arguments to execute>", "<commands and arguments to execute>", ...]
     }
     """
 
-search_output_example = """
-    {
-        "input": "search the ~/Documents/ directory for any .py file that begins with 'test'",
-        "error" : 0,
-        "commands": [
-            {
-                "seq": 1,
-                "cmd_to_execute": "find ~/Documents/ -name 'test*.py'",
-                "cmd_explanations": ["`find` is used to list files."],
-                "arg_explanations": [
-                                        "``~/Documents` specifies the folder to search in.",
-                                        "`-name 'test.py'` specifies that we want to search for files starting with `test` and ending with `.py`."
-                                    ]
-            }
-        ]
-    }
-    """
+JSON_INVALID_FORMAT = """{"input": "<user input>", "error": 1}"""
 
-unknown_query_output_example_one = (
-    """{"input": "the quick brown fox jumped over", "error": 1}"""
-)
+JSON_INVALID_FORMAT_FAST = """{"error": 1}"""
 
 INITIAL_CHAT_SYSTEM_MSG = {
     "role": "system",
     "content": f"""
-                You are DeveloperGPT, a helpful personal assistant for a programmer working on a {platform.platform()} machine. 
+                You are DeveloperGPT, a helpful personal assistant for a programmer working on a {config.USER_PLATFORM} machine. 
                 Your task is to assist the programmer with any programming-related tasks they may have. 
                 This could include providing advice on how to approach a programming problem, suggesting tools or libraries to use for a particular task, 
                 helping to troubleshoot errors or bugs in code, answering general programming questions, and providing code snippets or examples.
@@ -98,31 +59,42 @@ INITIAL_CHAT_SYSTEM_MSG = {
 INITIAL_CMD_SYSTEM_MSG = {
     "role": "system",
     "content": f"""
-            As an assistant for a programmer on a {platform.platform()} machine, your task is to provide the appropriate command-line commands to execute a user request.
-            """,
-}
-
-INITIAL_USER_CMD_MSG = {
-    "role": "user",
-    "content": f"""
-            Provide the appropriate command-line commands that can be executed on a {platform.platform()} machine for a user request.
-            Today's date/time is {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}.
-            If the request is possible, please provide commands that can be executed in the command line and do not require a GUI.
-            Do not include commands that require a yes/no response.
-            For each command, explain the command and any arguments used.
-            Try to find the simplest command(s) that can be used to execute the request.
-
-            If the request is valid, format each command output in the following JSON format: {json_cmd_format}
-
-            If the request is invalid, please return the following JSON format: {json_invalid_format}
+            As an assistant for a programmer on a {config.USER_PLATFORM} machine, your task is to provide the appropriate command-line commands to execute a user request.
             """,
 }
 
 
-def format_user_request(user_request: str) -> dict:
+def format_initial_cmd_msg(cmd_format: str, invalid_format: str) -> dict:
     return {
         "role": "user",
-        "content": f"""Provide the appropriate command-line commands that can be executed on a {platform.platform()} machine for the user request: "{user_request}".""",
+        "content": f"""
+                Provide the appropriate command-line commands that can be executed on a {config.USER_PLATFORM} machine for a user request.
+                Today's date/time is {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}.
+                If the request is possible, please provide commands that can be executed in the command line and do not require a GUI.
+                Do not include commands that require a yes/no response.
+                For each command, explain the command and any arguments used.
+                Try to find the simplest command(s) that can be used to execute the request.
+
+                If the request is valid, format each command output in the following JSON format: {cmd_format}
+
+                If the request is invalid, please return the following JSON format: {invalid_format}
+                """,
+    }
+
+
+INITIAL_USER_CMD_MSG = format_initial_cmd_msg(JSON_CMD_FORMAT, JSON_INVALID_FORMAT)
+
+INITIAL_USER_CMD_MSG_FAST = format_initial_cmd_msg(
+    JSON_CMD_FORMAT_FAST, JSON_INVALID_FORMAT_FAST
+)
+
+
+def format_user_request(
+    user_request: str, platform: str = config.USER_PLATFORM
+) -> dict:
+    return {
+        "role": "user",
+        "content": f"""Provide the appropriate command-line commands that can be executed on a {platform} machine for the user request: "{user_request}".""",
     }
 
 
@@ -130,34 +102,62 @@ def format_assistant_response(assistant_response: str) -> dict:
     return {"role": "assistant", "content": assistant_response}
 
 
-EXAMPLE_ONE = (
-    format_user_request("install conda"),
-    format_assistant_response(conda_output_example),
-)
-
-EXAMPLE_TWO = (
-    format_user_request(
-        "search ~/Documents directory for any .py file that begins with 'test'"
-    ),
-    format_assistant_response(search_output_example),
-)
-
-NEGATIVE_EXAMPLE_ONE = (
-    format_user_request("the quick brown fox jumped over"),
-    format_assistant_response(unknown_query_output_example_one),
-)
-
 BASE_INPUT_CMD_MSGS = [
     INITIAL_CMD_SYSTEM_MSG,
     INITIAL_USER_CMD_MSG,
-    *EXAMPLE_ONE,
-    *EXAMPLE_TWO,
-    *NEGATIVE_EXAMPLE_ONE,
+    format_user_request(
+        few_shot_prompts.CONDA_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
+    ),
+    format_assistant_response(few_shot_prompts.CONDA_OUTPUT_EXAMPLE),
+    format_user_request(
+        few_shot_prompts.SEARCH_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
+    ),
+    format_assistant_response(
+        few_shot_prompts.SEARCH_OUTPUT_EXAMPLE,
+    ),
+    format_user_request(
+        few_shot_prompts.UNKNOWN_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
+    ),
+    format_assistant_response(
+        few_shot_prompts.UNKNOWN_QUERY_OUTPUT_EXAMPLE_ONE,
+    ),
+]
+
+BASE_INPUT_CMD_MSGS_FAST = [
+    INITIAL_CMD_SYSTEM_MSG,
+    INITIAL_USER_CMD_MSG_FAST,
+    format_user_request(
+        few_shot_prompts.CONDA_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
+    ),
+    format_assistant_response(
+        few_shot_prompts.CONDA_OUTPUT_EXAMPLE_FAST,
+    ),
+    format_user_request(
+        few_shot_prompts.SEARCH_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
+    ),
+    format_assistant_response(
+        few_shot_prompts.SEARCH_OUTPUT_EXAMPLE_FAST,
+    ),
+    format_user_request(
+        few_shot_prompts.PROCESS_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
+    ),
+    format_assistant_response(
+        few_shot_prompts.PROCESS_OUTPUT_EXAMPLE_FAST,
+    ),
+    format_user_request(
+        few_shot_prompts.UNKNOWN_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
+    ),
+    format_assistant_response(
+        few_shot_prompts.UNKNOWN_QUERY_OUTPUT_EXAMPLE_ONE_FAST,
+    ),
 ]
 
 
 def get_model_chat_response(
-    user_input: str, console: "Console", input_messages: list, temperature: float
+    user_input: str,
+    console: Console,
+    input_messages: list,
+    temperature: float,
 ) -> list:
     MODEL = "gpt-3.5-turbo"
     MAX_TOKENS = 4000
@@ -197,16 +197,21 @@ def get_model_chat_response(
             )
 
     full_response = "".join(collected_messages)
-    input_messages.append({"role": "assistant", "content": full_response})
+    input_messages.append(format_assistant_response(full_response))
     return input_messages
 
 
-def model_command(user_input: str, console: "Console", input_messages: list) -> list:
+def model_command(user_input: str, console: Console, fast_mode: bool) -> list:
     MODEL = "gpt-3.5-turbo"
     MAX_TOKENS = 4000
     RESERVED_OUTPUT_TOKENS = 1024
     MAX_INPUT_TOKENS = MAX_TOKENS - RESERVED_OUTPUT_TOKENS
     TEMP = 0.05
+
+    if fast_mode:
+        input_messages = list(BASE_INPUT_CMD_MSGS_FAST)
+    else:
+        input_messages = list(BASE_INPUT_CMD_MSGS)
 
     input_messages.append(format_user_request(user_input))
 
@@ -245,14 +250,3 @@ def check_open_ai_key(console: "Console") -> None:
             f"[bold red]Error: Invalid OpenAI API key. Check your {config.OPEN_AI_API_KEY} environment variable.[/bold red]"
         )
         sys.exit(-1)
-
-
-# def format_model_output(text: str) -> str:
-#     """Format the model output to be more readable."""
-#     text = re.sub(
-#         r"```(.+?)```", "[syntax]" + r"\1" + "[/syntax]", text, flags=re.DOTALL
-#     )
-#     text = re.sub(r"`(.+?)`", "[syntax]" + r"\1" +
-#                   "[/syntax]", text, flags=re.DOTALL)
-#     text.replace("```", "[syntax]")
-#     return text
