@@ -2,7 +2,6 @@
 DeveloperGPT by luo-anthony
 """
 
-import copy
 import subprocess
 import sys
 from functools import wraps
@@ -12,16 +11,13 @@ import inquirer
 import openai
 from prompt_toolkit import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
-from prompt_toolkit.key_binding import KeyBindings
-from prompt_toolkit.key_binding.key_processor import KeyPressEvent
-from prompt_toolkit.keys import Keys
 from prompt_toolkit.shortcuts import CompleteStyle
 from rich.console import Console
 
 from developergpt import config, huggingface_adapter, openai_adapter, utils
 
-console = Console()
-session: "PromptSession" = PromptSession()
+console: Console = Console()
+session: PromptSession = PromptSession()
 
 
 def handle_api_error(f):
@@ -110,7 +106,7 @@ def chat(ctx, user_input):
                 "Chat: ", session, console, auto_suggest=AutoSuggestFromHistory()
             )
 
-        if len(user_input) == 0:
+        if not user_input:
             continue
 
         if model == config.GPT35:
@@ -125,20 +121,6 @@ def chat(ctx, user_input):
         user_input = None
 
 
-kb = KeyBindings()
-
-
-@kb.add(Keys.Enter, eager=True)
-def _(event: KeyPressEvent):
-    buff = event.app.current_buffer
-    if buff.complete_state:
-        # during completion, enter will select the current completion instead of submitting input
-        if buff.complete_state.current_completion:
-            buff.apply_completion(buff.complete_state.current_completion)
-            return  # don't submit input
-    buff.validate_and_handle()
-
-
 @main.command(help="Execute commands using natural language")
 @click.argument("user_input", nargs=-1)
 @click.pass_context
@@ -151,7 +133,6 @@ def cmd(ctx, user_input):
         session.history.append_string(user_input)
 
     model = ctx.obj["model"]
-    input_messages = copy.deepcopy(openai_adapter.BASE_INPUT_CMD_MSGS)
 
     if model == config.BLOOM:
         console.print(
@@ -170,16 +151,14 @@ def cmd(ctx, user_input):
                 console,
                 completer=utils.PathCompleter(),
                 complete_style=CompleteStyle.MULTI_COLUMN,
-                key_bindings=kb,
+                key_bindings=config.kb,
             )
 
-        if len(user_input) == 0:
+        if not user_input:
             continue
 
         if model == config.GPT35:
-            model_output = openai_adapter.model_command(
-                user_input, console, input_messages
-            )
+            model_output = openai_adapter.model_command(user_input, console)
         elif model == config.BLOOM:
             model_output = huggingface_adapter.model_command(
                 user_input, console, api_token
@@ -215,10 +194,6 @@ def cmd(ctx, user_input):
                     )
                     subprocess.run(cmd, shell=True)
 
-            console.print(
-                "[bold blue]Copied executed command(s) to clipboard[/bold blue]"
-            )
-            utils.copy_comands_to_cliboard(commands)
         elif selected_option == "Copy Command(s) to Clipboard":
             utils.copy_comands_to_cliboard(commands)
             console.print("[bold blue]Copied command(s) to clipboard[/bold blue]")
@@ -244,7 +219,7 @@ def test(ctx):
 @main.command(help="Give feedback")
 def feedback():
     console.print(
-        "Thanks for using DeveloperGPT! You can [bold blue][link=https://forms.gle/J36KbztsRAPHXnrKA]give feedback here[/link][/bold blue]!"
+        f"Thanks for using DeveloperGPT! You can [bold blue][link={config.FEEDBACK_LINK}]give feedback here[/link][/bold blue]!"
     )
 
 
