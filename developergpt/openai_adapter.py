@@ -1,6 +1,7 @@
 """
 DeveloperGPT by luo-anthony
 """
+import copy
 import platform
 import sys
 from datetime import datetime
@@ -197,17 +198,17 @@ def get_model_chat_response(
             )
 
     full_response = "".join(collected_messages)
-    input_messages.append({"role": "assistant", "content": full_response})
+    input_messages.append(format_assistant_response(full_response))
     return input_messages
 
 
-def model_command(user_input: str, console: "Console", input_messages: list) -> list:
+def model_command(user_input: str, console: Console) -> list:
     MODEL = "gpt-3.5-turbo"
     MAX_TOKENS = 4000
     RESERVED_OUTPUT_TOKENS = 1024
     MAX_INPUT_TOKENS = MAX_TOKENS - RESERVED_OUTPUT_TOKENS
     TEMP = 0.05
-
+    input_messages = copy.deepcopy(BASE_INPUT_CMD_MSGS)
     input_messages.append(format_user_request(user_input))
 
     n_input_tokens = utils.count_msg_tokens(input_messages, MODEL)
@@ -245,14 +246,3 @@ def check_open_ai_key(console: "Console") -> None:
             f"[bold red]Error: Invalid OpenAI API key. Check your {config.OPEN_AI_API_KEY} environment variable.[/bold red]"
         )
         sys.exit(-1)
-
-
-# def format_model_output(text: str) -> str:
-#     """Format the model output to be more readable."""
-#     text = re.sub(
-#         r"```(.+?)```", "[syntax]" + r"\1" + "[/syntax]", text, flags=re.DOTALL
-#     )
-#     text = re.sub(r"`(.+?)`", "[syntax]" + r"\1" +
-#                   "[/syntax]", text, flags=re.DOTALL)
-#     text.replace("```", "[syntax]")
-#     return text

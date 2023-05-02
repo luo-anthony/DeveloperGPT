@@ -18,10 +18,6 @@ from text_generation import InferenceAPIClient, errors
 
 from developergpt import config
 
-# TODO: add more hugging_face models: flan-ul2, Vicuna-13B?
-
-
-# TODO change the output format so that it doesn't use JSON and we don't need to deal with weird escaping issues with regex output
 BLOOM_CMD_PROMPT = """The following is a software development command line system that allows a user to get the command(s) to execute their request in natural language. 
     The system gives the user a series of commands to be executed for the given platform in JSON format with explanations.\n"""
 
@@ -62,8 +58,6 @@ search_output_example = """
     }
     """
 
-unknown_query_output_example_one = """{"error": 1}"""
-
 
 def format_user_cmd_request(user_input: str) -> str:
     user_input.replace('"', "'")
@@ -80,12 +74,12 @@ BLOOM_EXAMPLE_CMDS = [
 ]
 
 
-TIMEOUT = 25  # seconds
+TIMEOUT: int = 25  # seconds
 
 
-def model_command(user_input: str, console: "Console", api_token: str) -> str:
-    model = "bigscience/bloom"
-    client = InferenceAPIClient(model, token=api_token, timeout=TIMEOUT)
+def model_command(user_input: str, console: Console, api_token: str) -> str:
+    MODEL = "bigscience/bloom"
+    client = InferenceAPIClient(MODEL, token=api_token, timeout=TIMEOUT)
     MAX_RESPONSE_TOKENS = 384
 
     messages = copy.deepcopy(BLOOM_EXAMPLE_CMDS)
@@ -139,7 +133,7 @@ BLOOM_CHAT_PROMPT = """The following is a conversation with a software developme
     The chatbot is conversational, flexible, and should be able to engage in casual, friendly conversation to assist the user.
     The chatbot should also be able to maintain context across multiple turns of conversation.\n"""
 
-raw_chat_msgs = [
+RAW_CHAT_MSGS = [
     "User: What is the difference between x86 and ARM architecture?",
     """Assistant: x86 and ARM are two different processor architectures used in modern computing devices. They have different instruction sets, 
     with x86 using a CISC instruction set and ARM using a RISC instruction set. x86 processors typically have higher clock speeds and can execute more instructions per clock cycle, while ARM processors are more power-efficient.
@@ -166,7 +160,7 @@ raw_chat_msgs = [
     JIT compilers are commonly used in languages such as Java, JavaScript, and .NET.""",
 ]
 
-BASE_INPUT_CHAT_MSGS = [re.sub(" +", " ", msg) for msg in raw_chat_msgs]
+BASE_INPUT_CHAT_MSGS = [re.sub(" +", " ", msg) for msg in RAW_CHAT_MSGS]
 
 
 def format_bloom_chat_input(messages: list) -> str:
@@ -183,10 +177,10 @@ def format_assistant_output(output: str) -> str:
 
 
 def get_model_chat_response(
-    user_input: str, console: "Console", input_messages: list, api_token: str
+    user_input: str, console: Console, input_messages: list, api_token: str
 ) -> list:
-    model = "bigscience/bloom"
-    client = InferenceAPIClient(model, token=api_token, timeout=TIMEOUT)
+    MODEL = "bigscience/bloom"
+    client = InferenceAPIClient(MODEL, token=api_token, timeout=TIMEOUT)
     MAX_RESPONSE_TOKENS = 384
 
     panel_width = min(console.width, config.DEFAULT_COLUMN_WIDTH)

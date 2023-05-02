@@ -38,7 +38,9 @@ pip install -U developergpt
 
 ### Setup
 
-By default, DeveloperGPT uses the GPT-3.5 model from OpenAI. From limited testing, the GPT-3.5 model has the best results. 
+
+#### OpenAI GPT-3.5 (Default)
+By default, DeveloperGPT uses the GPT-3.5 model from OpenAI. 
 
 Get your own OpenAI API Key: https://platform.openai.com/account/api-keys
 
@@ -51,6 +53,7 @@ $ echo 'export OPENAI_API_KEY=[your_key_here]' >> ~/.zshenv
 $ source ~/.zshenv
 ```
 
+#### BLOOM
 To use the BLOOM model instead, you can optionally set up a [Hugging Face User Access](https://huggingface.co/settings/tokens) or [Inference API](https://huggingface.co/docs/api-inference/index) token. Setting up a token is not required (BLOOM model will work without any token or key), but it will allow you to make more requests without being rate limited. 
 
 ```bash
@@ -67,23 +70,29 @@ $ source ~/.zshenv
 # see available commands
 $ developergpt 
 
+# give feedback
+$ developergpt feedback
+```
+
+#### Natural Language to Terminal Comands
+```bash
 # natural language to terminal commands using GPT-3.5 (default)
 $ developergpt cmd [your natural language command request]
 
-# natural language to terminal commands using GPT-3.5 (default) with prompt 
+# natural language to terminal commands using GPT-3.5 (default) with prompt  
 $ developergpt cmd
 
+# natural langauge to terminal commands using BLOOM model instead
+$ developergpt --model bloom cmd [your natural language command request]
+```
+
+#### Chat inside the Terminal
+```bash
 # chat with DeveloperGPT using GPT-3.5 (default)
 $ developergpt chat
 
 # chat with DeveloperGPT using BLOOM model instead
 $ developergpt --model bloom chat
-
-# natural langauge to terminal commands using BLOOM model instead
-$ developergpt --model bloom cmd [natural language command request]
-
-# give feedback
-$ developergpt feedback
 ```
 
 **NOTE:** DeveloperGPT is **NOT** to be used for any purposes forbidden by the terms of use of the LLMs used (GPT-3.5, BLOOM). Additionally, DeveloperGPT itself (apart from the LLMs) is a proof of concept tool and is not intended to be used for any serious or commerical work. 

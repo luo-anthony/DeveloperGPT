@@ -10,6 +10,7 @@ import sys
 import pyperclip
 import requests
 import tiktoken
+from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
 from rich.console import Console
 from rich.markdown import Markdown
@@ -18,7 +19,7 @@ from rich.panel import Panel
 from developergpt import config
 
 
-def pretty_print_commands(commands: list, console: "Console", panel_width: int):
+def pretty_print_commands(commands: list, console: "Console", panel_width: int) -> None:
     # print all the commands in a panel
     commands_format = "\n\n".join([f"""- `{c}`""" for c in commands])
 
@@ -37,7 +38,7 @@ def pretty_print_commands(commands: list, console: "Console", panel_width: int):
     )
 
 
-def print_command_response(model_output: str, console: "Console"):
+def print_command_response(model_output: str, console: Console) -> list:
     if not model_output:
         return []
 
@@ -88,14 +89,14 @@ def copy_comands_to_cliboard(commands: list):
 
 
 def prompt_user_input(
-    input_request,
-    session,
-    console,
+    input_request: str,
+    session: PromptSession,
+    console: Console,
     completer=None,
     complete_style=None,
     auto_suggest=None,
     key_bindings=None,
-):
+) -> str:
     user_input = session.prompt(
         input_request,
         style=config.INPUT_STYLE,
@@ -117,7 +118,7 @@ def prompt_user_input(
 
 def check_reduce_context(
     messages: list, token_limit: int, model: str, ctx_removal_index: int
-) -> tuple[list, int]:
+) -> tuple:
     """Check if token limit is exceeded and remove old context starting at ctx_removal_index if so."""
     n_tokens = count_msg_tokens(messages, model)
     if n_tokens > token_limit:
@@ -172,7 +173,7 @@ def count_msg_tokens(messages: list, model: str) -> int:
 
 def remove_old_contexts(
     messages: list, token_limit: int, n_tokens: int, model: str, ctx_removal_index: int
-) -> tuple[list, int]:
+) -> tuple:
     """Remove old contexts until token limit is not exceeded."""
     while n_tokens > token_limit:
         removed_ctx = messages.pop(ctx_removal_index)
@@ -232,7 +233,7 @@ class PathCompleter(Completer):
                 )
 
 
-def check_connectivity(url="http://www.google.com", timeout=8):
+def check_connectivity(url: str = "http://www.google.com", timeout: int = 8) -> bool:
     try:
         _ = requests.get(url, timeout=timeout)
         return True
