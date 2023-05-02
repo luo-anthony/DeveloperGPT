@@ -16,6 +16,7 @@ In our testing, GPT-3.5 (default) generally yields better results and is able to
 DeveloperGPT has two main features:
 #### 1. Natural Language to Terminal Commands
 **Supported Models:** GPT3.5 (default), BLOOM
+
 **Usage:** `developergpt cmd [your natural language command request]`
 ![Natural Language Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/cmddemo.gif)
 
@@ -25,6 +26,7 @@ With both models, it is always good practice to manually verify the command outp
 
 #### 2. Chat inside the Terminal
 **Supported Models:** GPT3.5 (default), BLOOM
+
 **Usage:** `developergpt chat`
 ![Chat Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/chatdemo.gif)
 
