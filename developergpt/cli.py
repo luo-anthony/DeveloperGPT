@@ -176,7 +176,7 @@ def cmd(ctx, user_input, fast):
             )
         user_input = None  # clear input for next iteration
 
-        commands = utils.print_command_response(model_output, console, fast)
+        commands = utils.print_command_response(model_output, console, fast, model)
         if not commands:
             continue
 

@@ -17,7 +17,7 @@ from text_generation import InferenceAPIClient, errors
 from developergpt import config, few_shot_prompts
 
 BLOOM_CMD_PROMPT = """The following is a software development command line system that allows a user to get the command(s) to execute their request in natural language. 
-    The system gives the user a series of commands to be executed for the given platform in JSON format with explanations.\n"""
+    The system gives the user a series of commands to be executed for the given platform in Markdown format (escaping any special Markdown characters with \) along with explanations.\n"""
 TIMEOUT: int = 25  # seconds
 
 
@@ -51,15 +51,15 @@ BLOOM_EXAMPLE_CMDS_FAST = [
     format_user_cmd_request(
         few_shot_prompts.CONDA_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
     ),
-    format_assistant_output(few_shot_prompts.CONDA_OUTPUT_EXAMPLE_FAST),
+    format_assistant_output(few_shot_prompts.CONDA_OUTPUT_EXAMPLE_MARKDOWN),
     format_user_cmd_request(
         few_shot_prompts.SEARCH_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
     ),
-    format_assistant_output(few_shot_prompts.SEARCH_OUTPUT_EXAMPLE_FAST),
+    format_assistant_output(few_shot_prompts.SEARCH_OUTPUT_EXAMPLE_MARKDOWN),
     format_user_cmd_request(
         few_shot_prompts.PROCESS_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
     ),
-    format_assistant_output(few_shot_prompts.PROCESS_OUTPUT_EXAMPLE_FAST),
+    format_assistant_output(few_shot_prompts.PROCESS_OUTPUT_EXAMPLE_MARKDOWN),
 ]
 
 

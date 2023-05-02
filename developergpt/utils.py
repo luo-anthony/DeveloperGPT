@@ -39,33 +39,36 @@ def pretty_print_commands(commands: list, console: Console, panel_width: int) ->
 
 
 def print_command_response(
-    model_output: str, console: Console, fast_mode: bool
+    model_output: str, console: Console, fast_mode: bool, model: str
 ) -> list:
     if not model_output:
         return []
 
     panel_width = min(console.width, config.DEFAULT_COLUMN_WIDTH)
 
-    try:
-        output_data = json.loads(model_output)
-    except json.decoder.JSONDecodeError:
-        console.print(
-            "[bold red]Error: Could not parse model response properly[/bold red]"
-        )
-        console.log(model_output)
-        return []
-
-    if output_data.get("error", 0) or "commands" not in output_data:
-        console.print(
-            "[bold red]Error: Could not find commands for this request[/bold red]"
-        )
-        return []
-
-    commands = output_data.get("commands", {})
-    if fast_mode:
-        cmd_strings = commands
+    if fast_mode and model == config.BLOOM:
+        cmd_strings = model_output.split("`\n")
+        cmd_strings = [c.replace("`", "") for c in cmd_strings]
     else:
-        cmd_strings = [cmd.get("cmd_to_execute", "") for cmd in commands]
+        try:
+            output_data = json.loads(model_output)
+        except json.decoder.JSONDecodeError:
+            console.print(
+                "[bold red]Error: Could not parse model response properly[/bold red]"
+            )
+            console.log(model_output)
+            return []
+
+        if output_data.get("error", 0) or "commands" not in output_data:
+            console.print(
+                "[bold red]Error: Could not find commands for this request[/bold red]"
+            )
+            return []
+        commands = output_data.get("commands", {})
+        if fast_mode:
+            cmd_strings = commands
+        else:
+            cmd_strings = [cmd.get("cmd_to_execute", "") for cmd in commands]
 
     # print all the commands in a panel
     pretty_print_commands(cmd_strings, console, panel_width)

@@ -30,6 +30,11 @@ CONDA_OUTPUT_EXAMPLE_FAST = """
     }
     """
 
+CONDA_OUTPUT_EXAMPLE_MARKDOWN = """
+`curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh`\n
+`bash Miniconda3-latest-MacOSX-x86_64.sh`\n
+"""
+
 SEARCH_REQUEST = "search ~/Documents directory for any .py file that begins with 'test'"
 
 SEARCH_OUTPUT_EXAMPLE = """
@@ -56,12 +61,20 @@ SEARCH_OUTPUT_EXAMPLE_FAST = """
     }
     """
 
+SEARCH_OUTPUT_EXAMPLE_MARKDOWN = """
+`find ~/Documents/ -name 'test*.py'`\n
+"""
+
 PROCESS_REQUEST = "list all processes using more than 50 MB of memory"
 
 PROCESS_OUTPUT_EXAMPLE_FAST = """
 {
 "commands": ["ps -axm -o %mem,rss,comm | awk '$1 > 0.5 { printf(\\"%.0fMB\\\\t%s\\\\n\\", $2/1024, $3); }'"]
 }
+"""
+
+PROCESS_OUTPUT_EXAMPLE_MARKDOWN = """
+`ps -axm -o %mem,rss,comm | awk '$1 > 0.5 { printf(\\"%.0fMB\\\\t%s\\\\n\\", $2/1024, $3); }'`\n
 """
 
 UNKNOWN_REQUEST = "the quick brown fox jumped over"
