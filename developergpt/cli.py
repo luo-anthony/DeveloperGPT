@@ -48,8 +48,8 @@ def handle_api_error(f):
 )
 @click.option(
     "--model",
-    default="gpt-3.5",
-    help="The language model to use. Options: gpt-3.5 (default), bloom",
+    default="gpt-3.5-turbo",
+    help="The language model to use. Options: gpt-3.5-turbo (default), gpt-4, bloom",
 )
 @click.pass_context
 def main(ctx, temperature, model):
@@ -68,7 +68,7 @@ def main(ctx, temperature, model):
         sys.exit(-1)
 
     ctx.ensure_object(dict)
-    if model == config.GPT35:
+    if model == config.GPT35 or model == config.GPT4:
         openai.api_key = config.get_environ_key(config.OPEN_AI_API_KEY, console)
         openai_adapter.check_open_ai_key(console)
     elif model == config.BLOOM:
@@ -94,7 +94,7 @@ def chat(ctx, user_input):
 
     model = ctx.obj["model"]
 
-    if model == config.GPT35:
+    if model == config.GPT35 or model == config.GPT4:
         input_messages = [openai_adapter.INITIAL_CHAT_SYSTEM_MSG]
     elif model == config.BLOOM:
         input_messages = huggingface_adapter.BASE_INPUT_CHAT_MSGS
@@ -109,9 +109,9 @@ def chat(ctx, user_input):
         if not user_input:
             continue
 
-        if model == config.GPT35:
+        if model == config.GPT35 or model == config.GPT4:
             input_messages = openai_adapter.get_model_chat_response(
-                user_input, console, input_messages, ctx.obj["temperature"]
+                user_input, console, input_messages, ctx.obj["temperature"], model
             )
         elif model == config.BLOOM:
             input_messages = huggingface_adapter.get_model_chat_response(
@@ -168,8 +168,10 @@ def cmd(ctx, user_input, fast):
         if not user_input:
             continue
 
-        if model == config.GPT35:
-            model_output = openai_adapter.model_command(user_input, console, fast)
+        if model == config.GPT35 or model == config.GPT4:
+            model_output = openai_adapter.model_command(
+                user_input, console, fast, model
+            )
         elif model == config.BLOOM:
             model_output = huggingface_adapter.model_command(
                 user_input, console, api_token, fast

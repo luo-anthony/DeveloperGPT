@@ -158,21 +158,21 @@ def get_model_chat_response(
     console: Console,
     input_messages: list,
     temperature: float,
+    model: str,
 ) -> list:
-    MODEL = "gpt-3.5-turbo"
     MAX_TOKENS = 4000
     RESERVED_OUTPUT_TOKENS = 1024
     MAX_INPUT_TOKENS = MAX_TOKENS - RESERVED_OUTPUT_TOKENS
 
     input_messages.append({"role": "user", "content": user_input})
     input_messages, n_input_tokens = utils.check_reduce_context(
-        input_messages, MAX_INPUT_TOKENS, MODEL, ctx_removal_index=1
+        input_messages, MAX_INPUT_TOKENS, model, ctx_removal_index=1
     )
     n_output_tokens = max(RESERVED_OUTPUT_TOKENS, MAX_TOKENS - n_input_tokens)
 
     """Get the response from the model."""
     response = openai.ChatCompletion.create(
-        model=MODEL,
+        model=model,
         messages=input_messages,
         max_tokens=n_output_tokens,
         temperature=temperature,
@@ -201,8 +201,12 @@ def get_model_chat_response(
     return input_messages
 
 
-def model_command(user_input: str, console: Console, fast_mode: bool) -> list:
-    MODEL = "gpt-3.5-turbo"
+def model_command(
+    user_input: str,
+    console: Console,
+    fast_mode: bool,
+    model: str,
+) -> list:
     MAX_TOKENS = 4000
     RESERVED_OUTPUT_TOKENS = 1024
     MAX_INPUT_TOKENS = MAX_TOKENS - RESERVED_OUTPUT_TOKENS
@@ -215,14 +219,14 @@ def model_command(user_input: str, console: Console, fast_mode: bool) -> list:
 
     input_messages.append(format_user_request(user_input))
 
-    n_input_tokens = utils.count_msg_tokens(input_messages, MODEL)
+    n_input_tokens = utils.count_msg_tokens(input_messages, model)
 
     if n_input_tokens > MAX_INPUT_TOKENS:
         input_messages, n_input_tokens = utils.remove_old_contexts(
             input_messages,
             MAX_INPUT_TOKENS,
             n_input_tokens,
-            MODEL,
+            model,
             ctx_removal_index=2,
         )
 
@@ -230,7 +234,7 @@ def model_command(user_input: str, console: Console, fast_mode: bool) -> list:
 
     with console.status("[bold blue]Decoding request") as _:
         response = openai.ChatCompletion.create(
-            model=MODEL,
+            model=model,
             messages=input_messages,
             max_tokens=n_output_tokens,
             temperature=TEMP,
