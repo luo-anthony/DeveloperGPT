@@ -8,29 +8,26 @@
 
 DeveloperGPT is a terminal application that uses the latest LLMs to help developers be more productive. It is one of the first developer productivity terminal applications that supports **open source LLMs** such as the [BLOOM](https://bigscience.huggingface.co/blog/bloom) model in addition to OpenAI GPT LLMs. 
 
-By default, DeveloperGPT uses the [gpt-3.5-turbo](https://platform.openai.com/docs/models) model from OpenAI (requires an OpenAI API Key), but it also supports the open-source [BLOOM](https://bigscience.huggingface.co/blog/bloom) model. Using BLOOM with DeveloperGPT is **completely free** and does **not require an API key** (rate-limited) thanks to the Hugging Face Inference API. 
+By default, DeveloperGPT uses the [gpt-3.5-turbo](https://platform.openai.com/docs/models) model from OpenAI (requires an OpenAI API Key), but it also supports the open-source [BLOOM](https://bigscience.huggingface.co/blog/bloom) model and GPT-4 from OpenAI. Using BLOOM with DeveloperGPT is **completely free** and does **not require an API key** (rate-limited) thanks to the Hugging Face Inference API. 
 
-In our testing, GPT-3.5 (default) generally yields better results and is able to handle more complex requests. 
+From testing, OpenAI GPT models generally yield better results and are able to handle more complex requests compared to the BLOOM model. 
 
 DeveloperGPT has two main features:
 #### 1. Natural Language to Terminal Commands
-**Supported Models:** GPT3.5 (default), BLOOM
+**Supported Models:** GPT-3.5 (default), GPT-4, BLOOM
 
 **Usage:** `developergpt cmd [your natural language command request]`
 ![Natural Language Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/cmddemo.gif)
 
-**NOTE:** The BLOOM model command output may not be accurate, especially for more complex commands. Using the BLOOM model may also result in unexpected or undefined behavior. 
-
-With both models, it is always good practice to manually verify the command output before running it.
+From testing, the GPT-3.5 model is accurate for the majority of natural langauge to command requests and is significantly cheaper to use than GPT-4. The BLOOM model command output may not be accurate, especially for more complex commands. Using the BLOOM model may also result in unexpected or undefined behavior. With all models, it is always good practice to manually verify the command output before running it.
 
 #### 2. Chat inside the Terminal
-**Supported Models:** GPT3.5 (default), BLOOM
+**Supported Models:** GPT-3.5 (default), GPT-4, BLOOM
 
 **Usage:** `developergpt chat`
 ![Chat Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/chatdemo.gif)
 
 **NOTE:** Chat moderation is **NOT** implemented - all your chat messages should follow the OpenAI and BLOOM terms of use. 
-
 
 ## Install DeveloperGPT from PyPI
 ```bash
@@ -40,8 +37,8 @@ pip install -U developergpt
 ### Setup
 
 
-#### OpenAI GPT-3.5 (Default)
-By default, DeveloperGPT uses the GPT-3.5 model from OpenAI. To use this model, you will need an OpenAI API Key.
+#### OpenAI GPT Models
+By default, DeveloperGPT uses the GPT-3.5 model from OpenAI. To use GPT-3.5 or GPT-4, you will need an OpenAI API Key.
 
 1. Get your own OpenAI API Key: https://platform.openai.com/account/api-keys
 2. Set your OpenAI API Key as an environment variable. You only need to do this once. 
@@ -93,6 +90,12 @@ Use `developergpt --model bloom cmd` to use the BLOOM model instead of the GPT-3
 $ developergpt --model bloom cmd [your natural language command request]
 ```
 
+Use `developergpt --model bloom cmd` to use the GPT-4 model instead of the GPT-3.5 model (used by default). 
+```bash
+# Natural Language to Terminal Commands using GPT-4 model instead
+$ developergpt --model gpt-4 cmd [your natural language command request]
+```
+
 Use `developergpt cmd --fast` to get commands faster without any explanations (may be less accurate). 
 ```bash
 # Fast Mode (GPT-3.5): Commands are given without explanation (may be less accurate)
@@ -100,10 +103,13 @@ $ developergpt cmd --fast [your natural language command request]
 
 # Fast Mode (BLOOM): Commands are given without explanation (may be less accurate)
 $ developergpt --model bloom cmd --fast [your natural language command request]
+
+# Fast Mode (GPT-4): Commands are given without explanation (may be less accurate)
+$ developergpt --model gpt-4 cmd --fast [your natural language command request]
 ```
 
 #### Chat inside the Terminal
-DeveloperGPT allows you to chat with either the GPT-3.5 model or the BLOOM model in the terminal. 
+DeveloperGPT allows you to chat with the GPT models or the BLOOM model in the terminal. 
 
 ```bash
 # chat with DeveloperGPT using GPT-3.5 (default)
@@ -111,14 +117,17 @@ $ developergpt chat
 
 # chat with DeveloperGPT using BLOOM model instead
 $ developergpt --model bloom chat
+
+# chat with DeveloperGPT using GPT-4
+$ developergpt --model gpt-4 chat
 ```
 
-**NOTE:** DeveloperGPT is **NOT** to be used for any purposes forbidden by the terms of use of the LLMs used (GPT-3.5, BLOOM). Additionally, DeveloperGPT itself (apart from the LLMs) is a proof of concept tool and is not intended to be used for any serious or commerical work. 
+**NOTE:** DeveloperGPT is **NOT** to be used for any purposes forbidden by the terms of use of the LLMs used. Additionally, DeveloperGPT itself (apart from the LLMs) is a proof of concept tool and is not intended to be used for any serious or commerical work. 
 
-### OpenAI API Usage (GPT-3.5)
+### OpenAI API Usage
 You can monitor your OpenAI API usage here: https://platform.openai.com/account/usage
 
-DeveloperGPT uses the `gpt-3.5-turbo` model which is very cost efficient (1/10 the cost of models such as `text-davinci-003`). Based on preliminary testing, using DeveloperGPT should cost no more than 10 cents per day (assuming ~100 requests/day). 
+By default, DeveloperGPT uses the `gpt-3.5-turbo` model which is very cost efficient (1/10 the cost of models such as `text-davinci-003`). Based on preliminary testing, using DeveloperGPT with GPT-3.5 should cost no more than 10 cents per day.
 
 ### Hugging-Face Inference API Usage (BLOOM)
 Currently, using the BLOOM model does not require a token and is free but rate limited. To avoid rate limit, you can set a token using the instructions above. 

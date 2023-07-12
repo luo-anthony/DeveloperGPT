@@ -22,9 +22,10 @@ INPUT_STYLE = Style.from_dict(
 )
 
 # supported models
-GPT35 = "gpt-3.5"
+GPT35 = "gpt-3.5-turbo"
+GPT4 = "gpt-4"
 BLOOM = "bloom"
-SUPPORTED_MODELS = set([GPT35, BLOOM])
+SUPPORTED_MODELS = set([GPT35, BLOOM, GPT4])
 
 OPEN_AI_API_KEY = "OPENAI_API_KEY"
 HUGGING_FACE_API_KEY = "HUGGING_FACE_API_KEY"
