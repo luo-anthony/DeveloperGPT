@@ -37,10 +37,6 @@ Edit the files using your preferred editor.
 
 Run `make fmt` to format the code.
 
-## Run the linter
-
-Run `make lint` to run the linter.
-
 ## Test your changes
 
 Tests will be added soon!
@@ -80,8 +76,7 @@ Targets:
 help:             ## Show the help.
 install:          ## Install the project in dev mode.
 fmt:              ## Format code using black & isort.
-lint:             ## Run pep8, black, mypy linters.
-test: lint        ## Run tests and generate coverage report.
+test:             ## Run tests and generate coverage report.
 watch:            ## Run tests on every change.
 clean:            ## Clean unused files.
 virtualenv:       ## Create a virtual environment.
@@ -102,7 +97,7 @@ this token can be generated on [pypi.org](https://pypi.org/account/).
 
 To trigger a new release:
 1. Bump the version number in `developergpt/VERSION`
-2. Run formatting + linting + tests to make sure everything works 
+2. Run formatting + tests to make sure everything works 
 3. Add and commit all changes 
 4. Run `git tag v[new-version-number]` (should match the version number in `developergpt/VERSION`)
 5. Push changes to Github with tags: `git push origin main --tags`

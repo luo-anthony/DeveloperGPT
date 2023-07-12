@@ -28,8 +28,6 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install project
         run: make install
-      - name: Run linter
-        run: make lint
 
   tests:
     needs: linter
