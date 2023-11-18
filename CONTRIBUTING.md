@@ -101,5 +101,3 @@ To trigger a new release:
 3. Add and commit all changes 
 4. Run `git tag v[new-version-number]` (should match the version number in `developergpt/VERSION`)
 5. Push changes to Github with tags: `git push origin main --tags`
-
-
