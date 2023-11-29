@@ -5,6 +5,6 @@ tiktoken
 rich
 inquirer
 prompt_toolkit
-text_generation
+text_generation >= 0.6.0
 pyperclip
 requests

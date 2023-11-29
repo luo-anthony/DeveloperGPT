@@ -5,6 +5,7 @@ import sys
 from datetime import datetime
 
 import openai
+from openai import error
 from rich.console import Console
 from rich.live import Live
 from rich.markdown import Markdown
@@ -163,16 +164,17 @@ def get_model_chat_response(
     MAX_TOKENS = 4000
     RESERVED_OUTPUT_TOKENS = 1024
     MAX_INPUT_TOKENS = MAX_TOKENS - RESERVED_OUTPUT_TOKENS
+    model_name = config.OPENAI_MODEL_MAP[model]
 
     input_messages.append({"role": "user", "content": user_input})
     input_messages, n_input_tokens = utils.check_reduce_context(
-        input_messages, MAX_INPUT_TOKENS, model, ctx_removal_index=1
+        input_messages, MAX_INPUT_TOKENS, model_name, ctx_removal_index=1
     )
     n_output_tokens = max(RESERVED_OUTPUT_TOKENS, MAX_TOKENS - n_input_tokens)
 
     """Get the response from the model."""
     response = openai.ChatCompletion.create(
-        model=model,
+        model=model_name,
         messages=input_messages,
         max_tokens=n_output_tokens,
         temperature=temperature,
@@ -211,6 +213,7 @@ def model_command(
     RESERVED_OUTPUT_TOKENS = 1024
     MAX_INPUT_TOKENS = MAX_TOKENS - RESERVED_OUTPUT_TOKENS
     TEMP = 0.05
+    model_name = config.OPENAI_MODEL_MAP[model]
 
     if fast_mode:
         input_messages = list(BASE_INPUT_CMD_MSGS_FAST)
@@ -219,14 +222,14 @@ def model_command(
 
     input_messages.append(format_user_request(user_input))
 
-    n_input_tokens = utils.count_msg_tokens(input_messages, model)
+    n_input_tokens = utils.count_msg_tokens(input_messages, model_name)
 
     if n_input_tokens > MAX_INPUT_TOKENS:
         input_messages, n_input_tokens = utils.remove_old_contexts(
             input_messages,
             MAX_INPUT_TOKENS,
             n_input_tokens,
-            model,
+            model_name,
             ctx_removal_index=2,
         )
 
@@ -234,7 +237,7 @@ def model_command(
 
     with console.status("[bold blue]Decoding request") as _:
         response = openai.ChatCompletion.create(
-            model=model,
+            model=model_name,
             messages=input_messages,
             max_tokens=n_output_tokens,
             temperature=TEMP,
@@ -249,7 +252,7 @@ def check_open_ai_key(console: "Console") -> None:
     """Check if the OpenAI API key is valid."""
     try:
         _ = openai.Model.list()
-    except openai.error.AuthenticationError:
+    except error.AuthenticationError:
         console.print(
             f"[bold red]Error: Invalid OpenAI API key. Check your {config.OPEN_AI_API_KEY} environment variable.[/bold red]"
         )

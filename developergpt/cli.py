@@ -9,6 +9,7 @@ from functools import wraps
 import click
 import inquirer
 import openai
+from openai import error
 from prompt_toolkit import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.shortcuts import CompleteStyle
@@ -27,13 +28,13 @@ def handle_api_error(f):
     def internal(*args, **kwargs):
         try:
             return f(*args, **kwargs)
-        except openai.error.RateLimitError:
+        except error.RateLimitError:
             console.print("[bold red] Rate limit exceeded. Try again later.[/bold red]")
             sys.exit(-1)
-        except openai.error.ServiceUnavailableError:
+        except error.ServiceUnavailableError:
             console.print("[bold red] Service Unavailable. Try again later.[/bold red]")
             sys.exit(-1)
-        except openai.error.InvalidRequestError as e:
+        except error.InvalidRequestError as e:
             console.log(f"[bold red] Invalid Request: {e}[/bold red]")
             sys.exit(-1)
 
@@ -48,12 +49,12 @@ def handle_api_error(f):
 )
 @click.option(
     "--model",
-    default="gpt-3.5-turbo",
-    help="The language model to use. Options: gpt-3.5-turbo (default), gpt-4, bloom",
+    default="gpt35",
+    help=f"The LLM to use. Options: f{', '.join(config.SUPPORTED_MODELS)}",
 )
 @click.pass_context
 def main(ctx, temperature, model):
-    model = model.lower().strip()
+    model = model.lower().strip().replace(".", "")
     if not utils.check_connectivity():
         console.print(
             "[bold red]No internet connection. Please check your internet connection and try again.[/bold red]"
@@ -62,21 +63,22 @@ def main(ctx, temperature, model):
 
     if model not in config.SUPPORTED_MODELS:
         console.print(
-            f"""[bold red]Model {model} is not supported. 
-            Supported models: {",".join(config.SUPPORTED_MODELS)}[/bold red]"""
+            f"""[bold red]LLM {model} is not supported. 
+            Supported LLMs: {", ".join(config.SUPPORTED_MODELS)}[/bold red]"""
         )
         sys.exit(-1)
 
     ctx.ensure_object(dict)
-    if model == config.GPT35 or model == config.GPT4:
+    if model in config.OPENAI_MODEL_MAP:
         openai.api_key = config.get_environ_key(config.OPEN_AI_API_KEY, console)
         openai_adapter.check_open_ai_key(console)
-    elif model == config.BLOOM:
+    elif model in config.HF_MODEL_MAP:
         ctx.obj["api_key"] = config.get_environ_key_optional(
             config.HUGGING_FACE_API_KEY, console
         )
+
         console.print(
-            "[bold yellow]Using Bloom 176B model: some features may have unexpected behavior and results may not be as good as using GPT-3.5.[/bold yellow]"
+            f"[bold yellow]Using {config.HF_MODEL_MAP[model]} via HF: some features may have unexpected behavior and results may not be as accurate as OpenAI GPT LLMs."
         )
 
     ctx.obj["temperature"] = temperature
@@ -94,11 +96,14 @@ def chat(ctx, user_input):
 
     model = ctx.obj["model"]
 
-    if model == config.GPT35 or model == config.GPT4:
+    if model in config.OPENAI_MODEL_MAP:
         input_messages = [openai_adapter.INITIAL_CHAT_SYSTEM_MSG]
-    elif model == config.BLOOM:
+    elif model in config.HF_MODEL_MAP:
         input_messages = huggingface_adapter.BASE_INPUT_CHAT_MSGS
         api_token = ctx.obj.get("api_key", None)
+    else:
+        return
+
     console.print("[gray]Type 'quit' to exit the chat[/gray]")
     while True:
         if not user_input:
@@ -109,13 +114,13 @@ def chat(ctx, user_input):
         if not user_input:
             continue
 
-        if model == config.GPT35 or model == config.GPT4:
+        if model in config.OPENAI_MODEL_MAP:
             input_messages = openai_adapter.get_model_chat_response(
                 user_input, console, input_messages, ctx.obj["temperature"], model
             )
-        elif model == config.BLOOM:
+        elif model in config.HF_MODEL_MAP:
             input_messages = huggingface_adapter.get_model_chat_response(
-                user_input, console, input_messages, api_token
+                user_input, console, input_messages, api_token, model
             )
 
         user_input = None
@@ -144,11 +149,7 @@ def cmd(ctx, user_input, fast):
         session.history.append_string(user_input)
 
     model = ctx.obj["model"]
-
-    if model == config.BLOOM:
-        console.print(
-            "[bold yellow]WARNING: Bloom 176B model command outputs are less accurate than GPT-3.5. Check all commands before running them.[/bold yellow]"
-        )
+    if model in config.HF_MODEL_MAP:
         api_token = ctx.obj.get("api_key", None)
 
     if not user_input:
@@ -168,13 +169,13 @@ def cmd(ctx, user_input, fast):
         if not user_input:
             continue
 
-        if model == config.GPT35 or model == config.GPT4:
+        if model in config.OPENAI_MODEL_MAP:
             model_output = openai_adapter.model_command(
                 user_input, console, fast, model
             )
-        elif model == config.BLOOM:
+        elif model in config.HF_MODEL_MAP:
             model_output = huggingface_adapter.model_command(
-                user_input, console, api_token, fast
+                user_input, console, api_token, fast, model
             )
         user_input = None  # clear input for next iteration
 
@@ -228,12 +229,7 @@ def test(ctx):
     #     if len(user_input) == 0:
     #         continue
 
-
-@main.command(help="Give feedback")
-def feedback():
-    console.print(
-        f"Thanks for using DeveloperGPT! You can [bold blue][link={config.FEEDBACK_LINK}]give feedback here[/link][/bold blue]!"
-    )
+    #     print(user_input)
 
 
 if __name__ == "__main__":

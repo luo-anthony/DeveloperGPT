@@ -46,7 +46,7 @@ def print_command_response(
 
     panel_width = min(console.width, config.DEFAULT_COLUMN_WIDTH)
 
-    if fast_mode and model == config.BLOOM:
+    if fast_mode and model in config.HF_MODEL_MAP:
         cmd_strings = model_output.split("`\n")
         cmd_strings = [c.replace("`", "") for c in cmd_strings]
     else:
@@ -122,7 +122,7 @@ def prompt_user_input(
     if len(user_input) == 0:
         return ""
 
-    if user_input.lower() == "quit":
+    if user_input.lower() == "quit" or user_input.lower() == "exit":
         console.print("[bold blue]Exiting... [/bold blue]")
         sys.exit(0)
 

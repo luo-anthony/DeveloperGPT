@@ -22,15 +22,21 @@ INPUT_STYLE = Style.from_dict(
 )
 
 # supported models
-GPT35 = "gpt-3.5-turbo"
-GPT4 = "gpt-4"
-BLOOM = "bloom"
-SUPPORTED_MODELS = set([GPT35, BLOOM, GPT4])
+GPT35 = "gpt35"
+GPT4 = "gpt4"
+OPENCHAT = "openchat"
+ZEPHYR = "zephyr"
+SUPPORTED_MODELS = set([GPT35, GPT4, OPENCHAT, ZEPHYR])
+
+OPENAI_MODEL_MAP = {"gpt35": "gpt-3.5-turbo", "gpt4": "gpt-4"}
+
+HF_MODEL_MAP = {
+    "openchat": "openchat/openchat_3.5",
+    "zephyr": "HuggingFaceH4/zephyr-7b-beta",
+}
 
 OPEN_AI_API_KEY = "OPENAI_API_KEY"
 HUGGING_FACE_API_KEY = "HUGGING_FACE_API_KEY"
-
-FEEDBACK_LINK = "https://forms.gle/J36KbztsRAPHXnrKA"
 
 USER_PLATFORM = platform.platform()
 

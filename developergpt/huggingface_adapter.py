@@ -4,6 +4,7 @@ DeveloperGPT by luo-anthony
 
 import re
 import sys
+from typing import Optional
 
 import requests
 from rich.console import Console
@@ -16,7 +17,7 @@ from text_generation import InferenceAPIClient, errors
 
 from developergpt import config, few_shot_prompts
 
-BLOOM_CMD_PROMPT = """The following is a software development command line system that allows a user to get the command(s) to execute their request in natural language. 
+HF_CMD_PROMPT = """The following is a software development command line system that allows a user to get the command(s) to execute their request in natural language. 
     The system gives the user a series of commands to be executed for the given platform in Markdown format (escaping any special Markdown characters with \) along with explanations.\n"""
 TIMEOUT: int = 25  # seconds
 
@@ -36,7 +37,7 @@ def format_assistant_output(output: str) -> str:
     return f"""Assistant: {output}"""
 
 
-BLOOM_EXAMPLE_CMDS = [
+HF_EXAMPLE_CMDS = [
     format_user_cmd_request(
         few_shot_prompts.CONDA_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
     ),
@@ -47,7 +48,7 @@ BLOOM_EXAMPLE_CMDS = [
     format_assistant_output(few_shot_prompts.SEARCH_OUTPUT_EXAMPLE),
 ]
 
-BLOOM_EXAMPLE_CMDS_FAST = [
+HF_EXAMPLE_CMDS_FAST = [
     format_user_cmd_request(
         few_shot_prompts.CONDA_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
     ),
@@ -64,19 +65,23 @@ BLOOM_EXAMPLE_CMDS_FAST = [
 
 
 def model_command(
-    user_input: str, console: Console, api_token: str, fast_mode: bool
+    user_input: str,
+    console: Console,
+    api_token: Optional[str],
+    fast_mode: bool,
+    model: str,
 ) -> str:
-    MODEL = "bigscience/bloom"
-    client = InferenceAPIClient(MODEL, token=api_token, timeout=TIMEOUT)
-    MAX_RESPONSE_TOKENS = 384
+    model_name = config.HF_MODEL_MAP[model]
+    client = InferenceAPIClient(model_name, token=api_token, timeout=TIMEOUT)
+    MAX_RESPONSE_TOKENS = 512
     if fast_mode:
-        messages = list(BLOOM_EXAMPLE_CMDS_FAST)
+        messages = list(HF_EXAMPLE_CMDS_FAST)
     else:
-        messages = list(BLOOM_EXAMPLE_CMDS)
+        messages = list(HF_EXAMPLE_CMDS)
     messages.append(format_user_cmd_request(user_input))
 
     model_input = model_input = (
-        BLOOM_CMD_PROMPT + "\n" + "\n".join(messages) + "\nAssistant:"
+        HF_CMD_PROMPT + "\n" + "\n".join(messages) + "\nAssistant:"
     )
 
     with console.status("[bold blue]Decoding request") as _:
@@ -96,14 +101,14 @@ def model_command(
                     if exit:
                         break
 
-        except errors.RateLimitExceededError:
+        except errors.RateLimitExceededError as e:
             console.print(
-                "[bold red]Hugging Face Inference API rate limit exceeded. Please try again later or set a Hugging Face API key. [/bold red]"
+                f"[bold red]Hugging Face Inference API rate limit exceeded. Please try again later or set a Hugging Face token. {e}[/bold red]"
             )
             sys.exit(-1)
-        except errors.BadRequestError:
+        except errors.BadRequestError as e:
             console.print(
-                "[bold red]Hugging Face Inference API returned a bad request. Check your Hugging Face API key.[/bold red]"
+                f"[bold red]Hugging Face Inference API returned a bad request. {e}[/bold red]"
             )
             sys.exit(-1)
         except requests.exceptions.ReadTimeout:
@@ -158,18 +163,21 @@ def format_bloom_chat_input(messages: list) -> str:
 
 
 def get_model_chat_response(
-    user_input: str, console: Console, input_messages: list, api_token: str
+    user_input: str,
+    console: Console,
+    input_messages: list,
+    api_token: Optional[str],
+    model: str,
 ) -> list:
-    MODEL = "bigscience/bloom"
-    client = InferenceAPIClient(MODEL, token=api_token, timeout=TIMEOUT)
-    MAX_RESPONSE_TOKENS = 384
+    model_name = config.HF_MODEL_MAP[model]
+    client = InferenceAPIClient(model_name, token=api_token, timeout=TIMEOUT)
+    MAX_RESPONSE_TOKENS = 512
 
     panel_width = min(console.width, config.DEFAULT_COLUMN_WIDTH)
 
     input_messages.append(format_user_input(user_input))
 
     model_input = format_bloom_chat_input(input_messages)
-    # console.log(model_input)
 
     output_panel = Panel(
         "",
@@ -201,14 +209,14 @@ def get_model_chat_response(
                         break
                 else:
                     console.log(response.token)
-    except errors.RateLimitExceededError:
+    except errors.RateLimitExceededError as e:
         console.print(
-            "[bold red]Hugging Face Inference API rate limit exceeded. Please try again later or set a Hugging Face API key. [/bold red]"
+            f"[bold red]Hugging Face Inference API rate limit exceeded. Please try again later or set a Hugging Face token. {e}[/bold red]"
         )
         sys.exit(-1)
-    except errors.BadRequestError:
+    except errors.BadRequestError as e:
         console.print(
-            "[bold red]Hugging Face Inference API returned a bad request. Check your Hugging Face API key.[/bold red]"
+            f"[bold red]Hugging Face Inference API returned a bad request. {e}[/bold red]"
         )
         sys.exit(-1)
 
