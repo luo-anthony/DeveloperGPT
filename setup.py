@@ -33,7 +33,7 @@ setup(
     name="developergpt",
     version=read("developergpt", "VERSION"),
     python_requires=">=3.9",
-    description="developergpt is a command line tool that allows users to use natural language to execute commands and chat with the latest LLMs",
+    description="DeveloperGPT is a LLM-powered command line tool that enables natural language to terminal commands and in-terminal chat.",
     url="https://github.com/luo-anthony/DeveloperGPT/",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",

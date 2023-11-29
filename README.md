@@ -4,9 +4,9 @@
 [![PyPI](https://img.shields.io/pypi/v/developergpt)](https://pypi.org/project/developergpt/)
 [![OpenAI GPTs](https://img.shields.io/badge/OpenAI%20GPTs-Try%20the%20online%20DeveloperGPT-8A2BE2)](https://chat.openai.com/g/g-mfPPe6MKC-developergpt)
 
-DeveloperGPT is a LLM-enabled command line tool that enables natural language to terminal commands and in-terminal chat.
+DeveloperGPT is a LLM-powered command line tool that enables natural language to terminal commands and in-terminal chat.
 
-DeveloperGPT is powered by [OpenAI's GPT3.5](https://openai.com/blog/gpt-3-5b/) (by default) with additional support for [GPT4](https://openai.com/blog/gpt-4/) and open-source models hosted on Hugging Face including [Zephyr](https://huggingface.co/HuggingFaceH4/zephyr-7b-beta) and [OpenChat](https://huggingface.co/openchat/openchat_3.5).
+DeveloperGPT is powered by [OpenAI's GPT3.5](https://platform.openai.com/docs/models) (by default) with additional support for GPT4 and open-source models hosted on Hugging Face including [Zephyr](https://huggingface.co/HuggingFaceH4/zephyr-7b-beta) and [OpenChat](https://huggingface.co/openchat/openchat_3.5).
 
 DeveloperGPT has two main features:
 #### 1. Natural Language to Terminal Commands
@@ -26,8 +26,8 @@ $ developergpt cmd --fast [your natural language command request]
 
 Use `developergpt --model [zephyr,openchat,gpt4] cmd` to use a different LLM instead of GPT3.5. 
 ```bash
-# Example: Natural Language to Terminal Commands using OpenChat instead
-$ developergpt --model openchat cmd [your natural language command request]
+# Example: Natural Language to Terminal Commands using the Zephyr LLM instead of GPT3.5
+$ developergpt --model zephyr cmd [your natural language command request]
 ```
 
 GPT3.5 is generally accurate for the majority of natural langauge to command requests and is significantly cheaper to use than GPT4. Other models such as Zephyr or OpenChat are less accurate and may result in in unexpected or undefined behavior. With all models, it is always good practice to manually verify the command output before running it.
@@ -57,10 +57,10 @@ $ developergpt --model gpt4 chat
 
 ![Chat Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/chatdemo.gif)
 
-**NOTE:** Chat moderation is **NOT** implemented - all your chat messages should follow the terms of use of the LLM used. 
+Chat moderation is **NOT** implemented - all your chat messages should follow the terms of use of the LLM used. 
 
 ## Usage
-**NOTE:** DeveloperGPT is **NOT** to be used for any purposes forbidden by the terms of use of the LLMs used. Additionally, DeveloperGPT itself (apart from the LLMs) is a proof of concept tool and is not intended to be used for any serious or commerical work. 
+DeveloperGPT is **NOT** to be used for any purposes forbidden by the terms of use of the LLMs used. Additionally, DeveloperGPT itself (apart from the LLMs) is a proof of concept tool and is not intended to be used for any serious or commerical work. 
 
 ### Install DeveloperGPT from PyPI
 ```bash
