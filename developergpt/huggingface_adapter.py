@@ -65,6 +65,7 @@ HF_EXAMPLE_CMDS_FAST = [
 
 
 def model_command(
+    *,
     user_input: str,
     console: Console,
     api_token: Optional[str],
@@ -163,6 +164,7 @@ def format_bloom_chat_input(messages: list) -> str:
 
 
 def get_model_chat_response(
+    *,
     user_input: str,
     console: Console,
     input_messages: list,

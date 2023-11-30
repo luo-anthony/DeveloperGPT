@@ -8,8 +8,7 @@ from functools import wraps
 
 import click
 import inquirer
-import openai
-from openai import error
+from openai import OpenAI
 from prompt_toolkit import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.shortcuts import CompleteStyle
@@ -19,26 +18,6 @@ from developergpt import config, huggingface_adapter, openai_adapter, utils
 
 console: Console = Console()
 session: PromptSession = PromptSession()
-
-
-def handle_api_error(f):
-    """Handle API errors gracefully"""
-
-    @wraps(f)
-    def internal(*args, **kwargs):
-        try:
-            return f(*args, **kwargs)
-        except error.RateLimitError:
-            console.print("[bold red] Rate limit exceeded. Try again later.[/bold red]")
-            sys.exit(-1)
-        except error.ServiceUnavailableError:
-            console.print("[bold red] Service Unavailable. Try again later.[/bold red]")
-            sys.exit(-1)
-        except error.InvalidRequestError as e:
-            console.log(f"[bold red] Invalid Request: {e}[/bold red]")
-            sys.exit(-1)
-
-    return internal
 
 
 @click.group()
@@ -70,8 +49,9 @@ def main(ctx, temperature, model):
 
     ctx.ensure_object(dict)
     if model in config.OPENAI_MODEL_MAP:
-        openai.api_key = config.get_environ_key(config.OPEN_AI_API_KEY, console)
-        openai_adapter.check_open_ai_key(console)
+        client = OpenAI(api_key=config.get_environ_key(config.OPEN_AI_API_KEY, console))
+        openai_adapter.check_open_ai_key(console, client)
+        ctx.obj["client"] = client
     elif model in config.HF_MODEL_MAP:
         ctx.obj["api_key"] = config.get_environ_key_optional(
             config.HUGGING_FACE_API_KEY, console
@@ -88,7 +68,6 @@ def main(ctx, temperature, model):
 @main.command(help="Chat with DeveloperGPT")
 @click.pass_context
 @click.argument("user_input", nargs=-1)
-@handle_api_error
 def chat(ctx, user_input):
     if user_input:
         user_input = str(" ".join(user_input))
@@ -100,7 +79,6 @@ def chat(ctx, user_input):
         input_messages = [openai_adapter.INITIAL_CHAT_SYSTEM_MSG]
     elif model in config.HF_MODEL_MAP:
         input_messages = huggingface_adapter.BASE_INPUT_CHAT_MSGS
-        api_token = ctx.obj.get("api_key", None)
     else:
         return
 
@@ -115,12 +93,23 @@ def chat(ctx, user_input):
             continue
 
         if model in config.OPENAI_MODEL_MAP:
+            client = ctx.obj["client"]
             input_messages = openai_adapter.get_model_chat_response(
-                user_input, console, input_messages, ctx.obj["temperature"], model
+                user_input=user_input,
+                console=console,
+                input_messages=input_messages,
+                temperature=ctx.obj["temperature"],
+                model=model,
+                client=client,
             )
         elif model in config.HF_MODEL_MAP:
+            api_token = ctx.obj.get("api_key", None)
             input_messages = huggingface_adapter.get_model_chat_response(
-                user_input, console, input_messages, api_token, model
+                user_input=user_input,
+                console=console,
+                input_messages=input_messages,
+                api_token=api_token,
+                model=model,
             )
 
         user_input = None
@@ -135,7 +124,6 @@ def chat(ctx, user_input):
     help="Get commands without command or argument explanations (less accurate)",
 )
 @click.pass_context
-@handle_api_error
 def cmd(ctx, user_input, fast):
     input_request = "\nDesired Command Request: "
 
@@ -149,8 +137,6 @@ def cmd(ctx, user_input, fast):
         session.history.append_string(user_input)
 
     model = ctx.obj["model"]
-    if model in config.HF_MODEL_MAP:
-        api_token = ctx.obj.get("api_key", None)
 
     if not user_input:
         console.print("[gray]Type 'quit' to exit[/gray]")
@@ -169,13 +155,24 @@ def cmd(ctx, user_input, fast):
         if not user_input:
             continue
 
+        model_output = None
         if model in config.OPENAI_MODEL_MAP:
+            client = ctx.obj["client"]
             model_output = openai_adapter.model_command(
-                user_input, console, fast, model
+                user_input=user_input,
+                console=console,
+                fast_mode=fast,
+                model=model,
+                client=client,
             )
         elif model in config.HF_MODEL_MAP:
+            api_token = ctx.obj.get("api_key", None)
             model_output = huggingface_adapter.model_command(
-                user_input, console, api_token, fast, model
+                user_input=user_input,
+                console=console,
+                api_token=api_token,
+                fast_mode=fast,
+                model=model,
             )
         user_input = None  # clear input for next iteration
 
@@ -193,7 +190,7 @@ def cmd(ctx, user_input, fast):
         questions = [
             inquirer.List("Next", message="What would you like to do?", choices=options)
         ]
-        selected_option = inquirer.prompt(questions)["Next"]
+        selected_option = inquirer.prompt(questions)["Next"]  # type: ignore
 
         if selected_option == "Revise Query":
             input_request = "Revised Command Request: "
