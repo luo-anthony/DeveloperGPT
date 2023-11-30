@@ -6,6 +6,7 @@ DeveloperGPT by luo-anthony
 import json
 import os
 import sys
+from typing import Optional
 
 import pyperclip
 import requests
@@ -39,7 +40,7 @@ def pretty_print_commands(commands: list, console: Console, panel_width: int) ->
 
 
 def print_command_response(
-    model_output: str, console: Console, fast_mode: bool, model: str
+    model_output: Optional[str], console: Console, fast_mode: bool, model: str
 ) -> list:
     if not model_output:
         return []

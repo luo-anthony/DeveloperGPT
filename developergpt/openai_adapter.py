@@ -3,9 +3,10 @@ DeveloperGPT by luo-anthony
 """
 import sys
 from datetime import datetime
+from typing import Optional
 
 import openai
-from openai import error
+from openai import OpenAI
 from rich.console import Console
 from rich.live import Live
 from rich.markdown import Markdown
@@ -155,11 +156,13 @@ BASE_INPUT_CMD_MSGS_FAST = [
 
 
 def get_model_chat_response(
+    *,
     user_input: str,
     console: Console,
     input_messages: list,
     temperature: float,
     model: str,
+    client: "OpenAI",
 ) -> list:
     MAX_TOKENS = 4000
     RESERVED_OUTPUT_TOKENS = 1024
@@ -173,7 +176,7 @@ def get_model_chat_response(
     n_output_tokens = max(RESERVED_OUTPUT_TOKENS, MAX_TOKENS - n_input_tokens)
 
     """Get the response from the model."""
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model=model_name,
         messages=input_messages,
         max_tokens=n_output_tokens,
@@ -189,14 +192,21 @@ def get_model_chat_response(
         title_align="left",
         width=panel_width,
     )
-
-    with Live(output_panel, refresh_per_second=4):
-        for chunk in response:
-            msg = chunk["choices"][0]["delta"].get("content", "")
-            collected_messages.append(msg)
-            output_panel.renderable = Markdown(
-                "".join(collected_messages), inline_code_theme="monokai"
-            )
+    try:
+        with Live(output_panel, refresh_per_second=4):
+            for chunk in response:
+                msg = chunk.choices[0].delta.content
+                if msg:
+                    collected_messages.append(msg)
+                    output_panel.renderable = Markdown(
+                        "".join(collected_messages), inline_code_theme="monokai"
+                    )
+    except openai.RateLimitError:
+        console.print("[bold red] Rate limit exceeded. Try again later.[/bold red]")
+        sys.exit(-1)
+    except openai.BadRequestError as e:
+        console.log(f"[bold red] Bad Request: {e}[/bold red]")
+        sys.exit(-1)
 
     full_response = "".join(collected_messages)
     input_messages.append(format_assistant_response(full_response))
@@ -204,11 +214,8 @@ def get_model_chat_response(
 
 
 def model_command(
-    user_input: str,
-    console: Console,
-    fast_mode: bool,
-    model: str,
-) -> list:
+    *, user_input: str, console: Console, fast_mode: bool, model: str, client: "OpenAI"
+) -> Optional[str]:
     MAX_TOKENS = 4000
     RESERVED_OUTPUT_TOKENS = 1024
     MAX_INPUT_TOKENS = MAX_TOKENS - RESERVED_OUTPUT_TOKENS
@@ -234,25 +241,30 @@ def model_command(
         )
 
     n_output_tokens = max(RESERVED_OUTPUT_TOKENS, MAX_TOKENS - n_input_tokens)
+    try:
+        with console.status("[bold blue]Decoding request") as _:
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=input_messages,
+                max_tokens=n_output_tokens,
+                temperature=TEMP,
+            )
+    except openai.RateLimitError:
+        console.print("[bold red] Rate limit exceeded. Try again later.[/bold red]")
+        sys.exit(-1)
+    except openai.BadRequestError as e:
+        console.log(f"[bold red] Bad Request: {e}[/bold red]")
+        sys.exit(-1)
 
-    with console.status("[bold blue]Decoding request") as _:
-        response = openai.ChatCompletion.create(
-            model=model_name,
-            messages=input_messages,
-            max_tokens=n_output_tokens,
-            temperature=TEMP,
-        )
-
-    model_output = response["choices"][0]["message"]["content"].strip()
-
+    model_output = response.choices[0].message.content
     return model_output
 
 
-def check_open_ai_key(console: "Console") -> None:
+def check_open_ai_key(console: "Console", client: "OpenAI") -> None:
     """Check if the OpenAI API key is valid."""
     try:
-        _ = openai.Model.list()
-    except error.AuthenticationError:
+        _ = client.models.list()
+    except openai.AuthenticationError:
         console.print(
             f"[bold red]Error: Invalid OpenAI API key. Check your {config.OPEN_AI_API_KEY} environment variable.[/bold red]"
         )
