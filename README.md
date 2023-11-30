@@ -29,10 +29,9 @@ Use `developergpt --model [zephyr,openchat,gpt4] cmd` to use a different LLM ins
 # Example: Natural Language to Terminal Commands using the Zephyr LLM instead of GPT3.5
 $ developergpt --model zephyr cmd [your natural language command request]
 ```
+vGPT3.5 is generally accurate for the majority of natural langauge to command requests and is significantly cheaper to use than GPT4. Other models such as Zephyr or OpenChat are less accurate and may result in in unexpected or undefined behavior. With all models, it is always good practice to manually verify the command output before running it.
 
-GPT3.5 is generally accurate for the majority of natural langauge to command requests and is significantly cheaper to use than GPT4. Other models such as Zephyr or OpenChat are less accurate and may result in in unexpected or undefined behavior. With all models, it is always good practice to manually verify the command output before running it.
-
-![Natural Language Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/cmddemo.gif)
+![Natural Language Example 1](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/cmd_demo.gif)
 
 #### 2. Chat inside the Terminal
 **Supported LLMs:** GPT3.5 (default), GPT4, Zephyr, OpenChat
@@ -55,7 +54,7 @@ $ developergpt --model zephyr chat
 $ developergpt --model gpt4 chat
 ```
 
-![Chat Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/chatdemo.gif)
+![Chat Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/chat_demo.gif)
 
 Chat moderation is **NOT** implemented - all your chat messages should follow the terms of use of the LLM used. 
 
