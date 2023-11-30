@@ -7,4 +7,3 @@ rich
 inquirer
 prompt_toolkit
 pyperclip
-requests

@@ -6,7 +6,6 @@ import re
 import sys
 from typing import Optional
 
-import requests
 from rich.console import Console
 from rich.live import Live
 from rich.markdown import Markdown
@@ -110,11 +109,6 @@ def model_command(
         except errors.BadRequestError as e:
             console.print(
                 f"[bold red]Hugging Face Inference API returned a bad request. {e}[/bold red]"
-            )
-            sys.exit(-1)
-        except requests.exceptions.ReadTimeout:
-            console.print(
-                "[bold red]Hugging Face Inference API request timed out. Try again later.[/bold red]"
             )
             sys.exit(-1)
 

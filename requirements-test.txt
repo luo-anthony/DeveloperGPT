@@ -9,4 +9,3 @@ mypy
 gitchangelog
 mkdocs
 autopep8
-types-requests

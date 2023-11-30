@@ -5,11 +5,11 @@ DeveloperGPT by luo-anthony
 
 import json
 import os
+import socket
 import sys
 from typing import Optional
 
 import pyperclip
-import requests
 import tiktoken
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion
@@ -250,9 +250,12 @@ class PathCompleter(Completer):
                 )
 
 
-def check_connectivity(url: str = "http://www.google.com", timeout: int = 8) -> bool:
+def check_connectivity(host: str = "8.8.8.8", port: int = 53, timeout: int = 8) -> bool:
+    """
+    Check internet connection by trying to connect to Google's DNS server.
+    """
     try:
-        _ = requests.get(url, timeout=timeout)
+        socket.create_connection((host, port), timeout=timeout)
         return True
-    except requests.ConnectionError:
+    except OSError:
         return False
