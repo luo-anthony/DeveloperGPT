@@ -123,7 +123,7 @@ def model_command(
     return output_text
 
 
-BLOOM_CHAT_PROMPT = """The following is a conversation with a software development expert chatbot. 
+HF_CHAT_PROMPT = """The following is a conversation with a software development expert chatbot. 
     The chatbot should be able to understand and respond to questions and statements about a variety of topics related to Computer Science and Software Development. 
     The chatbot is conversational, flexible, and should be able to engage in casual, friendly conversation to assist the user.
     The chatbot should also be able to maintain context across multiple turns of conversation.\n"""
@@ -158,8 +158,8 @@ RAW_CHAT_MSGS = [
 BASE_INPUT_CHAT_MSGS = [re.sub(" +", " ", msg) for msg in RAW_CHAT_MSGS]
 
 
-def format_bloom_chat_input(messages: list) -> str:
-    model_input = BLOOM_CHAT_PROMPT + "\n" + "\n".join(messages) + "\nAssistant:"
+def format_hf_chat_input(messages: list) -> str:
+    model_input = HF_CHAT_PROMPT + "\n" + "\n".join(messages) + "\nAssistant:"
     return model_input
 
 
@@ -179,7 +179,7 @@ def get_model_chat_response(
 
     input_messages.append(format_user_input(user_input))
 
-    model_input = format_bloom_chat_input(input_messages)
+    model_input = format_hf_chat_input(input_messages)
 
     output_panel = Panel(
         "",

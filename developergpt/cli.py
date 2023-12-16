@@ -7,14 +7,22 @@ import sys
 from functools import wraps
 
 import click
+import google.generativeai as genai
 import inquirer
+from google.generativeai import GenerativeModel
 from openai import OpenAI
 from prompt_toolkit import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.shortcuts import CompleteStyle
 from rich.console import Console
 
-from developergpt import config, huggingface_adapter, openai_adapter, utils
+from developergpt import (
+    config,
+    gemini_adapter,
+    huggingface_adapter,
+    openai_adapter,
+    utils,
+)
 
 console: Console = Console()
 session: PromptSession = PromptSession()
@@ -28,7 +36,7 @@ session: PromptSession = PromptSession()
 )
 @click.option(
     "--model",
-    default="gpt35",
+    default="gemini",
     help=f"The LLM to use. Options: f{', '.join(config.SUPPORTED_MODELS)}",
 )
 @click.pass_context
@@ -52,14 +60,17 @@ def main(ctx, temperature, model):
         client = OpenAI(api_key=config.get_environ_key(config.OPEN_AI_API_KEY, console))
         openai_adapter.check_open_ai_key(console, client)
         ctx.obj["client"] = client
+        console.print(f"[bold yellow]Using OpenAI {config.OPENAI_MODEL_MAP[model]}.")
     elif model in config.HF_MODEL_MAP:
         ctx.obj["api_key"] = config.get_environ_key_optional(
             config.HUGGING_FACE_API_KEY, console
         )
-
         console.print(
-            f"[bold yellow]Using {config.HF_MODEL_MAP[model]} via HF: some features may have unexpected behavior and results may not be as accurate as OpenAI GPT LLMs."
+            f"[bold yellow]Using {config.HF_MODEL_MAP[model]} via HF: some features may have unexpected behavior and results may not be as accurate."
         )
+    elif model in config.GOOGLE_MODEL_MAP:
+        api_key = config.get_environ_key(config.GOOGLE_API_KEY, console)
+        genai.configure(api_key=api_key)
 
     ctx.obj["temperature"] = temperature
     ctx.obj["model"] = model
@@ -74,11 +85,15 @@ def chat(ctx, user_input):
         session.history.append_string(user_input)
 
     model = ctx.obj["model"]
+    input_messages = []
 
     if model in config.OPENAI_MODEL_MAP:
         input_messages = [openai_adapter.INITIAL_CHAT_SYSTEM_MSG]
     elif model in config.HF_MODEL_MAP:
         input_messages = huggingface_adapter.BASE_INPUT_CHAT_MSGS
+    elif model in config.GOOGLE_MODEL_MAP:
+        gemini_model = GenerativeModel(config.GOOGLE_MODEL_MAP[model])
+        chat_session = gemini_model.start_chat()
     else:
         return
 
@@ -111,6 +126,12 @@ def chat(ctx, user_input):
                 api_token=api_token,
                 model=model,
             )
+        elif model in config.GOOGLE_MODEL_MAP:
+            gemini_adapter.get_model_chat_response(
+                user_input=user_input,
+                console=console,
+                chat_session=chat_session,
+            )
 
         user_input = None
 
@@ -126,11 +147,6 @@ def chat(ctx, user_input):
 @click.pass_context
 def cmd(ctx, user_input, fast):
     input_request = "\nDesired Command Request: "
-
-    if fast:
-        console.print(
-            "[bold yellow]Using Fast Mode: Commands are given without explanation and may be less accurate[/bold yellow]"
-        )
 
     if user_input:
         user_input = str(" ".join(user_input))
@@ -174,6 +190,14 @@ def cmd(ctx, user_input, fast):
                 fast_mode=fast,
                 model=model,
             )
+        elif model in config.GOOGLE_MODEL_MAP:
+            model_output = gemini_adapter.model_command(
+                user_input=user_input,
+                console=console,
+                fast_mode=fast,
+                model=model,
+            )
+
         user_input = None  # clear input for next iteration
 
         commands = utils.print_command_response(model_output, console, fast, model)
@@ -215,18 +239,15 @@ def cmd(ctx, user_input, fast):
 
 
 # @main.command()
-@click.pass_context
+# @click.pass_context
 def test(ctx):
     pass
     # while True:
     #     user_input = utils.prompt_user_input(
     #         "Chat: ", session, console, auto_suggest=AutoSuggestFromHistory()
     #     )
-
     #     if len(user_input) == 0:
     #         continue
-
-    #     print(user_input)
 
 
 if __name__ == "__main__":
