@@ -1,4 +1,5 @@
 openai >= 1.1.0
+google-generativeai
 pydantic < 2.0.0
 text_generation >= 0.6.0
 click
