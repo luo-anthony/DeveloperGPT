@@ -8,13 +8,21 @@ from functools import wraps
 
 import click
 import inquirer
+import vertexai
 from openai import OpenAI
 from prompt_toolkit import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.shortcuts import CompleteStyle
 from rich.console import Console
+from vertexai.preview.generative_models import ChatSession, Content, GenerativeModel
 
-from developergpt import config, huggingface_adapter, openai_adapter, utils
+from developergpt import (
+    config,
+    gemini_adapter,
+    huggingface_adapter,
+    openai_adapter,
+    utils,
+)
 
 console: Console = Console()
 session: PromptSession = PromptSession()
@@ -58,8 +66,15 @@ def main(ctx, temperature, model):
         )
 
         console.print(
-            f"[bold yellow]Using {config.HF_MODEL_MAP[model]} via HF: some features may have unexpected behavior and results may not be as accurate as OpenAI GPT LLMs."
+            f"[bold yellow]Using {config.HF_MODEL_MAP[model]} via HF: some features may have unexpected behavior and results may not be as accurate."
         )
+    elif model in config.GOOGLE_MODEL_MAP:
+        project_id = config.get_environ_key(config.GCLOUD_PROJECT_ID, console)
+        location = config.get_environ_key(config.GCLOUD_LOCATION, console)
+        console.print(
+            f"[bold yellow]Using Google {config.GOOGLE_MODEL_MAP[model]}. Note: Vertex AI Gemini API is a Preview offering."
+        )
+        vertexai.init(project=project_id, location=location)
 
     ctx.obj["temperature"] = temperature
     ctx.obj["model"] = model
@@ -74,11 +89,15 @@ def chat(ctx, user_input):
         session.history.append_string(user_input)
 
     model = ctx.obj["model"]
+    input_messages = []
 
     if model in config.OPENAI_MODEL_MAP:
         input_messages = [openai_adapter.INITIAL_CHAT_SYSTEM_MSG]
     elif model in config.HF_MODEL_MAP:
         input_messages = huggingface_adapter.BASE_INPUT_CHAT_MSGS
+    elif model in config.GOOGLE_MODEL_MAP:
+        gemini_model = GenerativeModel(config.GOOGLE_MODEL_MAP[model])
+        chat_session = gemini_model.start_chat()
     else:
         return
 
@@ -110,6 +129,12 @@ def chat(ctx, user_input):
                 input_messages=input_messages,
                 api_token=api_token,
                 model=model,
+            )
+        elif model in config.GOOGLE_MODEL_MAP:
+            gemini_adapter.get_model_chat_response(
+                user_input=user_input,
+                console=console,
+                chat_session=chat_session,
             )
 
         user_input = None
@@ -174,6 +199,14 @@ def cmd(ctx, user_input, fast):
                 fast_mode=fast,
                 model=model,
             )
+        elif model in config.GOOGLE_MODEL_MAP:
+            model_output = gemini_adapter.model_command(
+                user_input=user_input,
+                console=console,
+                fast_mode=fast,
+                model=model,
+            )
+
         user_input = None  # clear input for next iteration
 
         commands = utils.print_command_response(model_output, console, fast, model)
@@ -215,18 +248,15 @@ def cmd(ctx, user_input, fast):
 
 
 # @main.command()
-@click.pass_context
+# @click.pass_context
 def test(ctx):
     pass
     # while True:
     #     user_input = utils.prompt_user_input(
     #         "Chat: ", session, console, auto_suggest=AutoSuggestFromHistory()
     #     )
-
     #     if len(user_input) == 0:
     #         continue
-
-    #     print(user_input)
 
 
 if __name__ == "__main__":

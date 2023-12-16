@@ -174,25 +174,24 @@ def get_model_chat_response(
         input_messages, MAX_INPUT_TOKENS, model_name, ctx_removal_index=1
     )
     n_output_tokens = max(RESERVED_OUTPUT_TOKENS, MAX_TOKENS - n_input_tokens)
-
-    """Get the response from the model."""
-    response = client.chat.completions.create(
-        model=model_name,
-        messages=input_messages,
-        max_tokens=n_output_tokens,
-        temperature=temperature,
-        stream=True,
-    )
-
-    collected_messages = []
-    panel_width = min(console.width, config.DEFAULT_COLUMN_WIDTH)
-    output_panel = Panel(
-        "",
-        title="[bold blue]DeveloperGPT[/bold blue]",
-        title_align="left",
-        width=panel_width,
-    )
     try:
+        """Get the response from the model."""
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=input_messages,
+            max_tokens=n_output_tokens,
+            temperature=temperature,
+            stream=True,
+        )
+
+        collected_messages = []
+        panel_width = min(console.width, config.DEFAULT_COLUMN_WIDTH)
+        output_panel = Panel(
+            "",
+            title="[bold blue]DeveloperGPT[/bold blue]",
+            title_align="left",
+            width=panel_width,
+        )
         with Live(output_panel, refresh_per_second=4):
             for chunk in response:
                 msg = chunk.choices[0].delta.content

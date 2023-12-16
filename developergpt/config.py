@@ -26,7 +26,8 @@ GPT35 = "gpt35"
 GPT4 = "gpt4"
 OPENCHAT = "openchat"
 ZEPHYR = "zephyr"
-SUPPORTED_MODELS = set([GPT35, GPT4, OPENCHAT, ZEPHYR])
+GEMINI = "gemini"
+SUPPORTED_MODELS = set([GPT35, GPT4, GEMINI, OPENCHAT, ZEPHYR])
 
 OPENAI_MODEL_MAP = {"gpt35": "gpt-3.5-turbo", "gpt4": "gpt-4"}
 
@@ -34,6 +35,13 @@ HF_MODEL_MAP = {
     "openchat": "openchat/openchat_3.5",
     "zephyr": "HuggingFaceH4/zephyr-7b-beta",
 }
+
+GOOGLE_MODEL_MAP = {
+    "gemini": "gemini-pro",
+}
+
+GCLOUD_PROJECT_ID = "GCLOUD_PROJECT_ID"
+GCLOUD_LOCATION = "GCLOUD_LOCATION"
 
 OPEN_AI_API_KEY = "OPENAI_API_KEY"
 HUGGING_FACE_API_KEY = "HUGGING_FACE_API_KEY"
@@ -46,7 +54,7 @@ def get_environ_key(keyname: str, console: Console) -> str:
     if not key:
         console.print(
             f"""[bold red]No {keyname} environment variable found. Please set the {keyname} environment variable.[/bold red]
-            \nexport {keyname}=<your_api_key>"""
+            export {keyname}=<your_api_key>"""
         )
         sys.exit(-1)
     return key
