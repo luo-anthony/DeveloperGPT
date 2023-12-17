@@ -35,7 +35,7 @@ Use `developergpt --model [gpt35,gpt4,zephyr,openchat] cmd` to use a different L
 $ developergpt --model gpt35 cmd [your natural language command request]
 ```
 
-Google's Gemini model is the fastest model with accuracy similar to OpenAI GPT models while being completely free. OpenAI GPT3.5 is generally accurate for the majority of natural langauge to command requests and is significantly cheaper to use than GPT4. Open-source models Zephyr and OpenChat are less accurate and may result in in unexpected or undefined behavior. With all models, it is always good practice to manually verify the command output before running it.
+From limited testing, Google's Gemini model seems to have comparable accuracy to OpenAI GPT models while being completely free (as of December 2023). OpenAI GPT4 is the most accurate model but is also the most expensive to use, while GPT3.5 provides the best balance between accuracy and cost (with more deterministic results than Gemini). Open-source models Zephyr and OpenChat are less accurate and may result in in unexpected or undefined behavior. With all models, it is always good practice to manually verify the command output before running it. 
 
 ![Natural Language Example 1](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/cmd_demo.gif)
 

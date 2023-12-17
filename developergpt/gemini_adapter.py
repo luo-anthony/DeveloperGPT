@@ -204,7 +204,13 @@ def model_command(
     with console.status("[bold blue]Decoding request") as _:
         response = gemini_model.generate_content(contents=input_messages)
 
-    # clean up the output - Gemini likes to put ``` around the output
+    # clean up the output - Gemini likes to put ``` and ```json around the output JSON { }
     raw_output = response.text
-    model_output = raw_output.replace("```", "").strip()
+    startPos = raw_output.find("{")
+    if startPos != -1:
+        raw_output = raw_output[startPos:]
+    endPos = raw_output.rfind("}")
+    if endPos != -1:
+        raw_output = raw_output[: endPos + 1]
+    model_output = raw_output.strip()
     return model_output
