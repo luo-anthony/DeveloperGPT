@@ -1,13 +1,11 @@
 """
 DeveloperGPT by luo-anthony
 """
-import sys
 from datetime import datetime
 from typing import Optional
 
-import openai
+import google.generativeai as genai
 from google.generativeai import ChatSession, GenerativeModel
-from openai import OpenAI
 from rich.console import Console
 from rich.live import Live
 from rich.markdown import Markdown
@@ -168,9 +166,14 @@ def get_model_chat_response(
     user_input: str,
     console: Console,
     chat_session: "ChatSession",
+    temperature: float,
 ) -> None:
     """Get the response from the model."""
-    response = chat_session.send_message(user_input, stream=True)
+    response = chat_session.send_message(
+        user_input,
+        stream=True,
+        generation_config=genai.types.GenerationConfig(temperature=temperature),
+    )
     collected_messages = []
     panel_width = min(console.width, config.DEFAULT_COLUMN_WIDTH)
     output_panel = Panel(
@@ -202,8 +205,10 @@ def model_command(
     input_messages.append(format_user_request(user_input))
 
     with console.status("[bold blue]Decoding request") as _:
-        response = gemini_model.generate_content(contents=input_messages)
-
+        response = gemini_model.generate_content(
+            contents=input_messages,
+            generation_config=genai.types.GenerationConfig(temperature=0.1),
+        )
     # clean up the output - Gemini likes to put ``` and ```json around the output JSON { }
     raw_output = response.text
     startPos = raw_output.find("{")

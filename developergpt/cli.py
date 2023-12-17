@@ -31,7 +31,7 @@ session: PromptSession = PromptSession()
 @click.group()
 @click.option(
     "--temperature",
-    default=0.1,
+    default=0.2,
     help="The temperature of the model response (higher means more creative, lower means more predictable)",
 )
 @click.option(
@@ -131,6 +131,7 @@ def chat(ctx, user_input):
                 user_input=user_input,
                 console=console,
                 chat_session=chat_session,
+                temperature=ctx.obj["temperature"],
             )
 
         user_input = None
