@@ -9,3 +9,5 @@ inquirer
 prompt_toolkit
 pyperclip
 requests
+llama-cpp-python
+huggingface-hub

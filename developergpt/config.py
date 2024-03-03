@@ -1,6 +1,7 @@
 """
 DeveloperGPT by luo-anthony
 """
+
 import os
 import platform
 import sys
@@ -27,17 +28,38 @@ GPT4 = "gpt4"
 OPENCHAT = "openchat"
 ZEPHYR = "zephyr"
 GEMINI = "gemini"
-SUPPORTED_MODELS = set([GPT35, GPT4, GEMINI, OPENCHAT, ZEPHYR])
+MISTRAL_Q6 = "mistral-q6"
+MISTRAL_Q4 = "mistral-q4"
+SUPPORTED_MODELS = set([GPT35, GPT4, GEMINI, OPENCHAT, ZEPHYR, MISTRAL_Q6, MISTRAL_Q4])
+OFFLINE_MODEL_CTX = 4000
+OFFLINE_MODELS = set([MISTRAL_Q6, MISTRAL_Q4])
+OFFLINE_MODEL_CACHE_DIR = os.path.expanduser("~/.cache/developergpt")
 
-OPENAI_MODEL_MAP = {"gpt35": "gpt-3.5-turbo", "gpt4": "gpt-4"}
+LLAMA_CPP_MODEL_MAP = {
+    MISTRAL_Q6: (
+        "TheBloke/Mistral-7B-Instruct-v0.2-GGUF",
+        "mistral-7b-instruct-v0.2.Q6_K.gguf",
+        "mistral-instruct",
+    ),
+    MISTRAL_Q4: (
+        "TheBloke/Mistral-7B-Instruct-v0.2-GGUF",
+        "mistral-7b-instruct-v0.2.Q4_K_M.gguf",
+        "mistral-instruct",
+    ),
+}
+
+OPENAI_MODEL_MAP = {
+    GPT35: "gpt-3.5-turbo",
+    GPT4: "gpt-4",
+}
 
 HF_MODEL_MAP = {
-    "openchat": "openchat/openchat_3.5",
-    "zephyr": "HuggingFaceH4/zephyr-7b-beta",
+    OPENCHAT: "openchat/openchat_3.5",
+    ZEPHYR: "HuggingFaceH4/zephyr-7b-beta",
 }
 
 GOOGLE_MODEL_MAP = {
-    "gemini": "gemini-pro",
+    GEMINI: "gemini-pro",
 }
 
 GOOGLE_API_KEY = "GOOGLE_API_KEY"
