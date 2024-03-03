@@ -10,4 +10,4 @@ prompt_toolkit
 pyperclip
 requests
 llama-cpp-python
-huggingface-hub
+huggingface-hub >= 0.20.0
