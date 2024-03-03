@@ -2,14 +2,17 @@
 DeveloperGPT by luo-anthony
 """
 
+import os
 import subprocess
 import sys
 from functools import wraps
+from typing import Optional
 
 import click
 import google.generativeai as genai
 import inquirer
 from google.generativeai import GenerativeModel
+from llama_cpp import Llama
 from openai import OpenAI
 from prompt_toolkit import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
@@ -39,27 +42,66 @@ session: PromptSession = PromptSession()
     default="gemini",
     help=f"The LLM to use. Options: f{', '.join(config.SUPPORTED_MODELS)}",
 )
+@click.option(
+    "--offline",
+    is_flag=True,
+    default=False,
+    help=f"Use DeveloperGPT with a quantized LLM running on-device (offline). Options: {', '.join(config.OFFLINE_MODELS)}",
+)
 @click.pass_context
-def main(ctx, temperature, model):
+def main(ctx, temperature: float, model: str, offline: bool):
     model = model.lower().strip().replace(".", "")
-    if not utils.check_connectivity():
-        console.print(
-            "[bold red]No internet connection. Please check your internet connection and try again.[/bold red]"
-        )
-        sys.exit(-1)
+    if offline and model not in config.OFFLINE_MODELS:
+        model = config.MISTRAL_Q6  # default to mistral 6 bit quantization if offline
 
     if model not in config.SUPPORTED_MODELS:
         console.print(
-            f"""[bold red]LLM {model} is not supported. 
-            Supported LLMs: {", ".join(config.SUPPORTED_MODELS)}[/bold red]"""
+            f"""[bold red]LLM {model} is not supported. """
+            f"""Supported LLMs: {", ".join(config.SUPPORTED_MODELS)}[/bold red]"""
+        )
+        sys.exit(-1)
+    internet_conn = utils.check_connectivity()
+    if model not in config.OFFLINE_MODELS and not internet_conn:
+        console.print(
+            """[bold red]No internet connection. """
+            """Please check your internet connection or use --offline mode.[/bold red]"""
         )
         sys.exit(-1)
 
     ctx.ensure_object(dict)
-    if model in config.OPENAI_MODEL_MAP:
+    client: Optional[OpenAI | Llama] = None
+    if offline or model in config.OFFLINE_MODELS:
+        console.print(
+            f"""[bold yellow]Using quantized {' '.join(config.LLAMA_CPP_MODEL_MAP[model])} running on-device (offline)."""
+        )
+        repo, llm_file, chat_format = config.LLAMA_CPP_MODEL_MAP[model]
+        if internet_conn:
+            client = Llama.from_pretrained(
+                repo_id=repo,
+                filename=llm_file,
+                verbose=False,
+                n_ctx=config.OFFLINE_MODEL_CTX,
+                chat_format=chat_format,
+                local_dir=config.OFFLINE_MODEL_CACHE_DIR,
+                local_dir_use_symlinks=True,
+            )
+        else:
+            model_path = os.path.join(config.OFFLINE_MODEL_CACHE_DIR, llm_file)
+            if not os.path.exists(model_path):
+                console.print(
+                    f"""[bold red]No internet connection and model not found locally at {model_path}. """
+                    """Please download the model first when on internet using --offline.[/bold red]"""
+                )
+                sys.exit(-1)
+            client = Llama(
+                model_path=model_path,
+                chat_format=chat_format,
+                verbose=False,
+                n_ctx=config.OFFLINE_MODEL_CTX,
+            )
+    elif model in config.OPENAI_MODEL_MAP:
         client = OpenAI(api_key=config.get_environ_key(config.OPEN_AI_API_KEY, console))
         openai_adapter.check_open_ai_key(console, client)
-        ctx.obj["client"] = client
         console.print(f"[bold yellow]Using OpenAI {config.OPENAI_MODEL_MAP[model]}.")
     elif model in config.HF_MODEL_MAP:
         ctx.obj["api_key"] = config.get_environ_key_optional(
@@ -74,6 +116,8 @@ def main(ctx, temperature, model):
 
     ctx.obj["temperature"] = temperature
     ctx.obj["model"] = model
+    ctx.obj["offline"] = offline
+    ctx.obj["client"] = client
 
 
 @main.command(help="Chat with DeveloperGPT")
@@ -87,7 +131,7 @@ def chat(ctx, user_input):
     model = ctx.obj["model"]
     input_messages = []
 
-    if model in config.OPENAI_MODEL_MAP:
+    if model in config.OPENAI_MODEL_MAP or model in config.LLAMA_CPP_MODEL_MAP:
         input_messages = [openai_adapter.INITIAL_CHAT_SYSTEM_MSG]
     elif model in config.HF_MODEL_MAP:
         input_messages = huggingface_adapter.BASE_INPUT_CHAT_MSGS
@@ -107,7 +151,8 @@ def chat(ctx, user_input):
         if not user_input:
             continue
 
-        if model in config.OPENAI_MODEL_MAP:
+        if model in config.OPENAI_MODEL_MAP or model in config.LLAMA_CPP_MODEL_MAP:
+            # llama.cpp models are OpenAI API drop-in compatible
             client = ctx.obj["client"]
             input_messages = openai_adapter.get_model_chat_response(
                 user_input=user_input,
@@ -173,7 +218,8 @@ def cmd(ctx, user_input, fast):
             continue
 
         model_output = None
-        if model in config.OPENAI_MODEL_MAP:
+        if model in config.OPENAI_MODEL_MAP or model in config.LLAMA_CPP_MODEL_MAP:
+            # llama.cpp models are OpenAI API drop-in compatible
             client = ctx.obj["client"]
             model_output = openai_adapter.model_command(
                 user_input=user_input,
@@ -239,16 +285,18 @@ def cmd(ctx, user_input, fast):
         sys.exit(0)
 
 
-# @main.command()
-# @click.pass_context
+"""
+@main.command()
+@click.pass_context
 def test(ctx):
     pass
-    # while True:
-    #     user_input = utils.prompt_user_input(
-    #         "Chat: ", session, console, auto_suggest=AutoSuggestFromHistory()
-    #     )
-    #     if len(user_input) == 0:
-    #         continue
+    while True:
+        user_input = utils.prompt_user_input(
+            "Chat: ", session, console, auto_suggest=AutoSuggestFromHistory()
+        )
+        if len(user_input) == 0:
+            continue
+"""
 
 
 if __name__ == "__main__":

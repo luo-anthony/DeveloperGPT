@@ -1,11 +1,13 @@
 """
 DeveloperGPT by luo-anthony
 """
+
 import sys
 from datetime import datetime
 from typing import Optional
 
 import openai
+from llama_cpp import Llama
 from openai import OpenAI
 from rich.console import Console
 from rich.live import Live
@@ -162,12 +164,16 @@ def get_model_chat_response(
     input_messages: list,
     temperature: float,
     model: str,
-    client: "OpenAI",
+    client: OpenAI | Llama,
 ) -> list:
     MAX_TOKENS = 4000
     RESERVED_OUTPUT_TOKENS = 1024
     MAX_INPUT_TOKENS = MAX_TOKENS - RESERVED_OUTPUT_TOKENS
-    model_name = config.OPENAI_MODEL_MAP[model]
+    # Note: llama.cpp models use OpenAI token counts as rough estimate
+    if model in config.OFFLINE_MODELS:
+        model_name = "gpt-3.5-turbo"
+    else:
+        model_name = config.OPENAI_MODEL_MAP[model]
 
     input_messages.append({"role": "user", "content": user_input})
     input_messages, n_input_tokens = utils.check_reduce_context(
@@ -176,14 +182,23 @@ def get_model_chat_response(
     n_output_tokens = max(RESERVED_OUTPUT_TOKENS, MAX_TOKENS - n_input_tokens)
     try:
         """Get the response from the model."""
-        response = client.chat.completions.create(
-            model=model_name,
-            messages=input_messages,
-            max_tokens=n_output_tokens,
-            temperature=temperature,
-            stream=True,
-        )
-
+        if model in config.OPENAI_MODEL_MAP:
+            assert isinstance(client, OpenAI)
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=input_messages,
+                max_tokens=n_output_tokens,
+                temperature=temperature,
+                stream=True,
+            )
+        else:
+            assert isinstance(client, Llama)
+            response = client.create_chat_completion_openai_v1(  # type: ignore
+                messages=input_messages,
+                max_tokens=n_output_tokens,
+                temperature=temperature,
+                stream=True,
+            )
         collected_messages = []
         panel_width = min(console.width, config.DEFAULT_COLUMN_WIDTH)
         output_panel = Panel(
@@ -213,13 +228,15 @@ def get_model_chat_response(
 
 
 def model_command(
-    *, user_input: str, console: Console, fast_mode: bool, model: str, client: "OpenAI"
+    *,
+    user_input: str,
+    console: Console,
+    fast_mode: bool,
+    model: str,
+    client: OpenAI | Llama,
 ) -> Optional[str]:
-    MAX_TOKENS = 4000
-    RESERVED_OUTPUT_TOKENS = 1024
-    MAX_INPUT_TOKENS = MAX_TOKENS - RESERVED_OUTPUT_TOKENS
+    n_output_tokens = 4000
     TEMP = 0.05
-    model_name = config.OPENAI_MODEL_MAP[model]
 
     if fast_mode:
         input_messages = list(BASE_INPUT_CMD_MSGS_FAST)
@@ -227,36 +244,31 @@ def model_command(
         input_messages = list(BASE_INPUT_CMD_MSGS)
 
     input_messages.append(format_user_request(user_input))
-
-    n_input_tokens = utils.count_msg_tokens(input_messages, model_name)
-
-    if n_input_tokens > MAX_INPUT_TOKENS:
-        input_messages, n_input_tokens = utils.remove_old_contexts(
-            input_messages,
-            MAX_INPUT_TOKENS,
-            n_input_tokens,
-            model_name,
-            ctx_removal_index=2,
-        )
-
-    n_output_tokens = max(RESERVED_OUTPUT_TOKENS, MAX_TOKENS - n_input_tokens)
     try:
         with console.status("[bold blue]Decoding request") as _:
-            response = client.chat.completions.create(
-                model=model_name,
-                messages=input_messages,
-                max_tokens=n_output_tokens,
-                temperature=TEMP,
-            )
+            if model in config.OPENAI_MODEL_MAP:
+                assert isinstance(client, OpenAI)
+                model_name = config.OPENAI_MODEL_MAP[model]
+                response = client.chat.completions.create(
+                    model=model_name,
+                    messages=input_messages,
+                    max_tokens=n_output_tokens,
+                    temperature=TEMP,
+                )
+            else:
+                assert isinstance(client, Llama)
+                response = client.create_chat_completion_openai_v1(
+                    messages=input_messages,
+                    max_tokens=n_output_tokens,
+                    temperature=TEMP,
+                )
     except openai.RateLimitError:
         console.print("[bold red] Rate limit exceeded. Try again later.[/bold red]")
         sys.exit(-1)
     except openai.BadRequestError as e:
         console.log(f"[bold red] Bad Request: {e}[/bold red]")
         sys.exit(-1)
-
-    model_output = response.choices[0].message.content
-    return model_output
+    return response.choices[0].message.content
 
 
 def check_open_ai_key(console: "Console", client: "OpenAI") -> None:
