@@ -2,23 +2,23 @@ CONDA_REQUEST = "install conda"
 
 CONDA_OUTPUT_EXAMPLE = """
     {
-        "input": conda_request,
+        "input": "install conda",
         "error": 0,
         "commands": [
             {
                 "seq": 1,
                 "cmd_to_execute": "curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh",
                 "cmd_explanations": ["The `curl` command is used to issue web requests, e.g. download web pages."],
-                "arg_explanations": [
-                                        "`-O` specifies that we want to save the response to a file.",
-                                        "`https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh` is the URL of the file we want to download."
-                                    ]
+                "arg_explanations": {
+                                        "-O": "specifies that we want to save the response to a file.",
+                                        "https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh": "is the URL of the file we want to download."
+                                    }
             },
             {
                 "seq": 2,
                 "cmd_to_execute": "bash Miniconda3-latest-MacOSX-x86_64.sh",
                 "cmd_explanations": ["The `bash` command is used to execute shell scripts."],
-                "arg_explanations": ["`Miniconda3-latest-MacOSX-x86_64.sh` is the name of the file we want to execute."]
+                "arg_explanations": {"Miniconda3-latest-MacOSX-x86_64.sh": "is the name of the file we want to execute."}
             }
         ]
     }
@@ -46,10 +46,10 @@ SEARCH_OUTPUT_EXAMPLE = """
                 "seq": 1,
                 "cmd_to_execute": "find ~/Documents/ -name 'test*.py'",
                 "cmd_explanations": ["`find` is used to list files."],
-                "arg_explanations": [
-                                        "``~/Documents` specifies the folder to search in.",
-                                        "`-name 'test.py'` specifies that we want to search for files starting with `test` and ending with `.py`."
-                                    ]
+                "arg_explanations": {
+                                        "~/Documents": "specifies the folder to search in.",
+                                        "-name 'test*.py'": "specifies that we want to search for files starting with `test` and ending with `.py`."
+                                    }
             }
         ]
     }

@@ -19,6 +19,7 @@ Switch between different LLMs using the `--model` flag: `developergpt --model [m
 | `gpt35`, `gpt4`            | [OpenAI](https://platform.openai.com/docs/models)                    | Pay-Per-Usage, OpenAI API Key Required                          |
 | `zephyr`                   | [Zephyr](https://huggingface.co/HuggingFaceH4/zephyr-7b-beta)        | Free, Open-Source, Hugging-Face Inference API                   |
 | `openchat`                 | [OpenChat](https://huggingface.co/openchat/openchat_3.5)             | Free, Open-Source, Hugging-Face Inference API                   |
+| `gemma`                    | [Google AI](https://huggingface.co/google/gemma-7b)                  | Free, Open-Source, Hugging-Face Inference API                   |
 
 - `mistral-q6` and `mistral-q4` are [quantized GGUF Mistral-7B-Instruct](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF) LLMs running locally on-device using llama.cpp (Q6_K quantized and Q4_K quantized models respectively)
 

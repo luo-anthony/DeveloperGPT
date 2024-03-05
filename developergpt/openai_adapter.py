@@ -25,13 +25,13 @@ JSON_CMD_FORMAT = """
                 "seq": <Order of Command>,
                 "cmd_to_execute": "<commands and arguments to execute>",
                 "cmd_explanations": ["<explanation of command 1>", "<explantion of command 2>", ...],
-                "arg_explanations": ["<explanation of argument 1>", "<explanation of argument 2>", ...]
+                "arg_explanations": {"<arg1>": "<explanation of arg1>", "<arg2>": "<explanation of argument 2>", ...}
             },
             {
                 "seq": <Order of Command>,
                 "cmd_to_execute": "<commands and arguments to execute>",
                 "cmd_explanations": ["<explanation of command 1>", "<explantion of command 2>", ...],
-                "arg_explanations": ["<explanation of argument 1>", "<explanation of argument 2>", ...]
+                "arg_explanations": {"<arg1>": "<explanation of arg1>", "<arg2>": "<explanation of argument 2>", ...}
             }
         ]
     }
@@ -245,15 +245,19 @@ def model_command(
 
     input_messages.append(format_user_request(user_input))
     try:
+        response_format = (
+            None if fast_mode or model == config.GPT4 else {"type": "json_object"}
+        )
         with console.status("[bold blue]Decoding request") as _:
             if model in config.OPENAI_MODEL_MAP:
                 assert isinstance(client, OpenAI)
                 model_name = config.OPENAI_MODEL_MAP[model]
-                response = client.chat.completions.create(
+                response = client.chat.completions.create(  # type: ignore
                     model=model_name,
                     messages=input_messages,
                     max_tokens=n_output_tokens,
                     temperature=TEMP,
+                    response_format=response_format,
                 )
             else:
                 assert isinstance(client, Llama)
@@ -261,6 +265,7 @@ def model_command(
                     messages=input_messages,
                     max_tokens=n_output_tokens,
                     temperature=TEMP,
+                    response_format=response_format,
                 )
     except openai.RateLimitError:
         console.print("[bold red] Rate limit exceeded. Try again later.[/bold red]")
@@ -268,7 +273,16 @@ def model_command(
     except openai.BadRequestError as e:
         console.log(f"[bold red] Bad Request: {e}[/bold red]")
         sys.exit(-1)
-    return response.choices[0].message.content
+    raw_output = response.choices[0].message.content
+    # clean up the output - Mistral7B ocassionally adds additional characters after JSON
+    startPos = raw_output.find("{")
+    if startPos != -1:
+        raw_output = raw_output[startPos:]
+    endPos = raw_output.rfind("}")
+    if endPos != -1:
+        raw_output = raw_output[: endPos + 1]
+    model_output = raw_output.strip()
+    return model_output
 
 
 def check_open_ai_key(console: "Console", client: "OpenAI") -> None:

@@ -1,6 +1,7 @@
 """
 DeveloperGPT by luo-anthony
 """
+
 from datetime import datetime
 from typing import Optional
 
@@ -50,13 +51,13 @@ JSON_CMD_FORMAT = """
                 "seq": <Order of Command>,
                 "cmd_to_execute": "<commands and arguments to execute>",
                 "cmd_explanations": ["<explanation of command 1>", "<explantion of command 2>", ...],
-                "arg_explanations": ["<explanation of argument 1>", "<explanation of argument 2>", ...]
+                "arg_explanations": {"<arg1>": "<explanation of arg1>", "<arg2>": "<explanation of argument 2>", ...}
             },
             {
                 "seq": <Order of Command>,
                 "cmd_to_execute": "<commands and arguments to execute>",
                 "cmd_explanations": ["<explanation of command 1>", "<explantion of command 2>", ...],
-                "arg_explanations": ["<explanation of argument 1>", "<explanation of argument 2>", ...]
+                "arg_explanations": {"<arg1>": "<explanation of arg1>", "<arg2>": "<explanation of argument 2>", ...}
             }
         ]
     }
