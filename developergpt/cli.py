@@ -84,6 +84,7 @@ def main(ctx, temperature: float, model: str, offline: bool):
                 chat_format=chat_format,
                 local_dir=config.OFFLINE_MODEL_CACHE_DIR,
                 local_dir_use_symlinks=True,
+                n_threads=8,
             )
         else:
             model_path = os.path.join(config.OFFLINE_MODEL_CACHE_DIR, llm_file)
@@ -98,6 +99,7 @@ def main(ctx, temperature: float, model: str, offline: bool):
                 chat_format=chat_format,
                 verbose=False,
                 n_ctx=config.OFFLINE_MODEL_CTX,
+                n_threads=8,
             )
     elif model in config.OPENAI_MODEL_MAP:
         client = OpenAI(api_key=config.get_environ_key(config.OPEN_AI_API_KEY, console))
@@ -283,6 +285,127 @@ def cmd(ctx, user_input, fast):
             console.print("[bold blue]Exiting...\n[/bold blue]")
 
         sys.exit(0)
+
+
+@main.command()
+@click.option(
+    "--rpath",
+    help="The set of evaluation requests (txt file) to run.",
+)
+@click.option(
+    "--output",
+    help="Output folder to save the results.",
+)
+@click.option(
+    "--rate_limit",
+    default=0,
+    help="seconds to wait between commands",
+)
+@click.option(
+    "--fast",
+    is_flag=True,
+    default=False,
+    help="Get commands without command or argument explanations (less accurate)",
+)
+@click.pass_context
+def evaluate(ctx, rpath: str, output: str, rate_limit: int, fast: bool):
+    import csv
+    import json
+    import logging
+    import time
+    from datetime import datetime
+
+    logging.basicConfig(level=logging.INFO)
+
+    COMMAND_SEP = " [~] "
+
+    model = ctx.obj["model"]
+    datetime_string = datetime.now().strftime("%m-%d_%H-%M")
+    output_file_path = f"{output}/{model}_{datetime_string}_results.csv"
+    config_file_path = f"{output}/{model}_{datetime_string}_config.txt"
+    with open(rpath, "r") as file:
+        requests = file.readlines()
+
+    request_output_pairs = []
+    start_time = time.time()
+    n_requests = 0
+    total_sleep_time = 0
+    for req in requests:
+        req = req.strip()
+        if not req:
+            continue  # skip empty lines
+        n_requests += 1
+        logging.info(f"Request: {req}")
+
+        # TODO: add rate limiting but also subtract from evlauation time
+        if model in config.OPENAI_MODEL_MAP or model in config.LLAMA_CPP_MODEL_MAP:
+            # llama.cpp models are OpenAI API drop-in compatible
+            client = ctx.obj["client"]
+            model_output = openai_adapter.model_command(
+                user_input=req,
+                console=console,
+                fast_mode=fast,
+                model=model,
+                client=client,
+            )
+        elif model in config.HF_MODEL_MAP:
+            api_token = ctx.obj.get("api_key", None)
+            model_output = huggingface_adapter.model_command(
+                user_input=req,
+                console=console,
+                api_token=api_token,
+                fast_mode=fast,
+                model=model,
+            )
+        elif model in config.GOOGLE_MODEL_MAP:
+            model_output = gemini_adapter.model_command(
+                user_input=req,
+                console=console,
+                fast_mode=fast,
+                model=model,
+            )
+        else:
+            logging.error("Invalid model")
+            sys.exit(-1)
+
+        try:
+            output_data = json.loads(model_output)
+        except json.decoder.JSONDecodeError:
+            request_output_pairs.append((req, "INVALID_JSON"))
+            continue
+
+        if output_data.get("error", 0) or "commands" not in output_data:
+            request_output_pairs.append((req, "ERROR / NO COMMAND"))
+            continue
+
+        commands = output_data.get("commands", [])
+        cmd_strings = [cmd.get("cmd_to_execute", "") for cmd in commands]
+        request_output_pairs.append((req, COMMAND_SEP.join(cmd_strings)))
+
+        logging.info(request_output_pairs[-1])
+        if rate_limit:
+            time.sleep(rate_limit)
+            total_sleep_time += rate_limit
+    end_time = time.time()
+    elapsed_time = end_time - start_time - total_sleep_time
+    print(
+        f"\n------------\n{model} Total Run Time: {elapsed_time}, Num Requests: {n_requests}"
+    )
+    print(f"{model} Sec/Request: {elapsed_time/n_requests}")
+
+    with open(output_file_path, "w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["Request", "Output"])  # Write the header row
+        writer.writerows(request_output_pairs)
+
+    # Open the file in append mode and write the text
+    with open(config_file_path, "w") as file:
+        file.write(f"Model={model}\n")
+        file.write(f"Fast_Mode={fast}\n")
+        file.write(f"Total Run Time={elapsed_time}\n")
+        file.write(f"Num Requests={n_requests}\n")
+        file.write(f"Sec/Request={elapsed_time/n_requests}\n")
+        file.write(f"{ctx.obj}\n")
 
 
 """
