@@ -2,7 +2,6 @@
 DeveloperGPT by luo-anthony
 """
 
-
 import json
 import os
 import sys
@@ -65,7 +64,7 @@ def print_command_response(
                 "[bold red]Error: Could not find commands for this request[/bold red]"
             )
             return []
-        commands = output_data.get("commands", {})
+        commands = output_data.get("commands", [])
         if fast_mode:
             cmd_strings = commands
         else:
@@ -81,9 +80,9 @@ def print_command_response(
             explanation_items.extend(
                 [f"- {c}" for c in cmd.get("cmd_explanations", [])]
             )
-            explanation_items.extend(
-                [f"\t- {c}" for c in cmd.get("arg_explanations", [])]
-            )
+            arg_expl = cmd.get("arg_explanations", {})
+            for k, v in arg_expl.items():
+                explanation_items.append(f"\t- `{k}` {v}")
 
         arg_out = Markdown("\n".join(explanation_items))
 

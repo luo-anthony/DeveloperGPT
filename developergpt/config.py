@@ -27,10 +27,13 @@ GPT35 = "gpt35"
 GPT4 = "gpt4"
 OPENCHAT = "openchat"
 ZEPHYR = "zephyr"
+GEMMA = "gemma"
 GEMINI = "gemini"
 MISTRAL_Q6 = "mistral-q6"
 MISTRAL_Q4 = "mistral-q4"
-SUPPORTED_MODELS = set([GPT35, GPT4, GEMINI, OPENCHAT, ZEPHYR, MISTRAL_Q6, MISTRAL_Q4])
+SUPPORTED_MODELS = set(
+    [GPT35, GPT4, GEMINI, OPENCHAT, ZEPHYR, MISTRAL_Q6, MISTRAL_Q4, GEMMA]
+)
 OFFLINE_MODEL_CTX = 4000
 OFFLINE_MODELS = set([MISTRAL_Q6, MISTRAL_Q4])
 OFFLINE_MODEL_CACHE_DIR = os.path.expanduser("~/.cache/developergpt")
@@ -54,8 +57,9 @@ OPENAI_MODEL_MAP = {
 }
 
 HF_MODEL_MAP = {
-    OPENCHAT: "openchat/openchat_3.5",
+    OPENCHAT: "openchat/openchat-3.5-0106",
     ZEPHYR: "HuggingFaceH4/zephyr-7b-beta",
+    GEMMA: "google/gemma-7b",
 }
 
 GOOGLE_MODEL_MAP = {
