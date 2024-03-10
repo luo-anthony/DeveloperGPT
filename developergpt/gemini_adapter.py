@@ -208,7 +208,7 @@ def model_command(
     with console.status("[bold blue]Decoding request") as _:
         response = gemini_model.generate_content(
             contents=input_messages,
-            generation_config=genai.types.GenerationConfig(temperature=0.1),
+            generation_config=genai.types.GenerationConfig(temperature=config.CMD_TEMP),
         )
     # clean up the output - Gemini likes to put ``` and ```json around the output JSON { }
     raw_output = response.text

@@ -236,7 +236,6 @@ def model_command(
     client: OpenAI | Llama,
 ) -> Optional[str]:
     n_output_tokens = 4000
-    TEMP = 0.05
 
     if fast_mode:
         input_messages = list(BASE_INPUT_CMD_MSGS_FAST)
@@ -256,7 +255,7 @@ def model_command(
                     model=model_name,
                     messages=input_messages,
                     max_tokens=n_output_tokens,
-                    temperature=TEMP,
+                    temperature=config.CMD_TEMP,
                     response_format=response_format,
                 )
             else:
@@ -264,7 +263,7 @@ def model_command(
                 response = client.create_chat_completion_openai_v1(
                     messages=input_messages,
                     max_tokens=n_output_tokens,
-                    temperature=TEMP,
+                    temperature=config.CMD_TEMP,
                     response_format=response_format,
                 )
     except openai.RateLimitError:

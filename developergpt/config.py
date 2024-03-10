@@ -71,6 +71,7 @@ OPEN_AI_API_KEY = "OPENAI_API_KEY"
 HUGGING_FACE_API_KEY = "HUGGING_FACE_API_KEY"
 
 USER_PLATFORM = platform.platform()
+CMD_TEMP = 0.05
 
 
 def get_environ_key(keyname: str, console: Console) -> str:

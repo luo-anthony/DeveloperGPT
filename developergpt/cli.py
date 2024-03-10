@@ -75,15 +75,19 @@ def main(ctx, temperature: float, model: str, offline: bool):
             f"""[bold yellow]Using quantized {' '.join(config.LLAMA_CPP_MODEL_MAP[model])} running on-device (offline)."""
         )
         repo, llm_file, chat_format = config.LLAMA_CPP_MODEL_MAP[model]
+        common_llama_args = {
+            "n_ctx": config.OFFLINE_MODEL_CTX,
+            "verbose": False,
+            "chat_format": chat_format,
+            "n_threads": 8,
+        }
         if internet_conn:
             client = Llama.from_pretrained(
                 repo_id=repo,
                 filename=llm_file,
-                verbose=False,
-                n_ctx=config.OFFLINE_MODEL_CTX,
-                chat_format=chat_format,
                 local_dir=config.OFFLINE_MODEL_CACHE_DIR,
                 local_dir_use_symlinks=True,
+                **common_llama_args,  # type: ignore
             )
         else:
             model_path = os.path.join(config.OFFLINE_MODEL_CACHE_DIR, llm_file)
@@ -95,9 +99,7 @@ def main(ctx, temperature: float, model: str, offline: bool):
                 sys.exit(-1)
             client = Llama(
                 model_path=model_path,
-                chat_format=chat_format,
-                verbose=False,
-                n_ctx=config.OFFLINE_MODEL_CTX,
+                **common_llama_args,  # type: ignore
             )
     elif model in config.OPENAI_MODEL_MAP:
         client = OpenAI(api_key=config.get_environ_key(config.OPEN_AI_API_KEY, console))

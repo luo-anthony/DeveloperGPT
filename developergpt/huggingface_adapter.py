@@ -19,7 +19,7 @@ from developergpt import config, few_shot_prompts
 
 HF_CMD_PROMPT = """The following is a software development command line system that allows a user to get the command(s) to execute their request in natural language. 
     The system gives the user a series of commands to be executed for the given platform in Markdown format (escaping any special Markdown characters with \) along with explanations.\n"""
-TIMEOUT: int = 25  # seconds
+TIMEOUT: int = 30  # seconds
 
 
 def format_user_cmd_request(
@@ -74,7 +74,7 @@ def model_command(
 ) -> str:
     model_name = config.HF_MODEL_MAP[model]
     client = InferenceAPIClient(model_name, token=api_token, timeout=TIMEOUT)
-    MAX_RESPONSE_TOKENS = 512
+    MAX_RESPONSE_TOKENS = 784
     if fast_mode:
         messages = list(HF_EXAMPLE_CMDS_FAST)
     else:
@@ -87,20 +87,15 @@ def model_command(
 
     with console.status("[bold blue]Decoding request") as _:
         try:
-            exit = False
             output_text = ""
             for response in client.generate_stream(
-                model_input, max_new_tokens=MAX_RESPONSE_TOKENS
+                model_input,
+                max_new_tokens=MAX_RESPONSE_TOKENS,
+                stop_sequences=["User:"],
+                temperature=config.CMD_TEMP,
             ):
                 if not response.token.special:
                     output_text += response.token.text
-                    # stop generation once we hit "User:"
-                    idx = output_text.find("User:")
-                    if idx > 0:
-                        output_text = output_text[:idx].strip()
-                        exit = True
-                    if exit:
-                        break
 
         except errors.RateLimitExceededError as e:
             console.print(
