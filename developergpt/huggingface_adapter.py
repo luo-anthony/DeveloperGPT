@@ -2,6 +2,7 @@
 DeveloperGPT by luo-anthony
 """
 
+import json
 import re
 import sys
 from typing import Optional
@@ -15,11 +16,17 @@ from rich.panel import Panel
 # using: https://pypi.org/project/text-generation/
 from text_generation import InferenceAPIClient, errors
 
-from developergpt import config, few_shot_prompts
+from developergpt import config, few_shot_prompts, utils
+from developergpt.few_shot_prompts import (
+    INITIAL_USER_CMD_MSG,
+    INITIAL_USER_CMD_MSG_FAST,
+)
 
-HF_CMD_PROMPT = """The following is a software development command line system that allows a user to get the command(s) to execute their request in natural language. 
+# NOTE: this is used to coerce completion models into providing a chat-like response to command requests
+HF_CMD_PROMPT_COMPLETION_MODEL = """The following is a software development command line system that allows a user to get the command(s) to execute their request in natural language. 
     The system gives the user a series of commands to be executed for the given platform in Markdown format (escaping any special Markdown characters with \) along with explanations.\n"""
-TIMEOUT: int = 25  # seconds
+
+TIMEOUT: int = 45  # seconds
 
 
 def format_user_cmd_request(
@@ -73,34 +80,60 @@ def model_command(
     model: str,
 ) -> str:
     model_name = config.HF_MODEL_MAP[model]
+    instruct_model = model in config.HF_INSTRUCT_MODELS
     client = InferenceAPIClient(model_name, token=api_token, timeout=TIMEOUT)
-    MAX_RESPONSE_TOKENS = 512
+    MAX_RESPONSE_TOKENS = 784
     if fast_mode:
         messages = list(HF_EXAMPLE_CMDS_FAST)
     else:
         messages = list(HF_EXAMPLE_CMDS)
     messages.append(format_user_cmd_request(user_input))
 
-    model_input = model_input = (
-        HF_CMD_PROMPT + "\n" + "\n".join(messages) + "\nAssistant:"
-    )
+    if instruct_model:
+        if fast_mode:
+            model_input = model_input = (
+                INITIAL_USER_CMD_MSG_FAST + "\n" + "\n".join(messages) + "\nAssistant:"
+            )
+        else:
+            model_input = model_input = (
+                INITIAL_USER_CMD_MSG + "\n" + "\n".join(messages) + "\nAssistant:"
+            )
+    else:
+        model_input = model_input = (
+            HF_CMD_PROMPT_COMPLETION_MODEL + "\n" + "\n".join(messages) + "\nAssistant:"
+        )
 
     with console.status("[bold blue]Decoding request") as _:
         try:
-            exit = False
-            output_text = ""
-            for response in client.generate_stream(
-                model_input, max_new_tokens=MAX_RESPONSE_TOKENS
-            ):
-                if not response.token.special:
-                    output_text += response.token.text
-                    # stop generation once we hit "User:"
-                    idx = output_text.find("User:")
-                    if idx > 0:
-                        output_text = output_text[:idx].strip()
-                        exit = True
-                    if exit:
-                        break
+            output_text = client.generate(
+                model_input,
+                max_new_tokens=MAX_RESPONSE_TOKENS,
+                stop_sequences=["User:"],
+                temperature=config.CMD_TEMP,
+            ).generated_text
+            output_text = output_text.strip()
+            json_str_attempt = utils.clean_model_output(output_text)
+
+            # smaller instruction tuned models tend to exhibit more erratic behavior - we need a two-step JSON parse
+            if not instruct_model:
+                return json_str_attempt
+            else:
+                try:
+                    _ = json.loads(json_str_attempt)
+                    # valid JSON -> return the cleaned output
+                    return json_str_attempt
+                except json.decoder.JSONDecodeError:
+                    # invalid JSON -> ask model to extract the JSON
+                    extract_json_request = f"""Extract and return only the first JSON block from the following text. 
+                    The output should be only valid JSON:\n
+                    {json_str_attempt}
+                    """
+                    second_attempt = client.generate(
+                        extract_json_request,
+                        max_new_tokens=MAX_RESPONSE_TOKENS,
+                        temperature=config.CMD_TEMP,
+                    ).generated_text
+                    return utils.clean_model_output(second_attempt)
 
         except errors.RateLimitExceededError as e:
             console.print(
@@ -118,11 +151,11 @@ def model_command(
             )
             sys.exit(-1)
 
-    # clean up
-    output_text = output_text.strip()
-    return output_text
 
-
+"""
+NOTE: this prompt coerces completion models to work like chat models with code formatting examples and example response types (e.g. BLOOM, Gemma-7b)
+This is not needed for instruction-tuned models. 
+"""
 HF_CHAT_PROMPT = """The following is a conversation with a software development expert chatbot. 
     The chatbot should be able to understand and respond to questions and statements about a variety of topics related to Computer Science and Software Development. 
     The chatbot is conversational, flexible, and should be able to engage in casual, friendly conversation to assist the user.
@@ -158,28 +191,29 @@ RAW_CHAT_MSGS = [
 BASE_INPUT_CHAT_MSGS = [re.sub(" +", " ", msg) for msg in RAW_CHAT_MSGS]
 
 
-def format_hf_chat_input(messages: list) -> str:
-    model_input = HF_CHAT_PROMPT + "\n" + "\n".join(messages) + "\nAssistant:"
-    return model_input
-
-
 def get_model_chat_response(
     *,
     user_input: str,
     console: Console,
     input_messages: list,
     api_token: Optional[str],
+    temperature: float,
     model: str,
 ) -> list:
     model_name = config.HF_MODEL_MAP[model]
+    instruct_model = model in config.HF_INSTRUCT_MODELS
     client = InferenceAPIClient(model_name, token=api_token, timeout=TIMEOUT)
-    MAX_RESPONSE_TOKENS = 512
+    MAX_RESPONSE_TOKENS = 1024
 
     panel_width = min(console.width, config.DEFAULT_COLUMN_WIDTH)
-
     input_messages.append(format_user_input(user_input))
 
-    model_input = format_hf_chat_input(input_messages)
+    if instruct_model:
+        model_input = "\n".join(input_messages) + "\nAssistant: "
+    else:
+        model_input = (
+            HF_CHAT_PROMPT + "\n" + "\n".join(input_messages) + "\nAssistant: "
+        )
 
     output_panel = Panel(
         "",
@@ -191,26 +225,21 @@ def get_model_chat_response(
     output_text = ""
     try:
         with Live(output_panel, refresh_per_second=4):
-            exit = False
             for response in client.generate_stream(
-                model_input, max_new_tokens=MAX_RESPONSE_TOKENS
+                model_input,
+                max_new_tokens=MAX_RESPONSE_TOKENS,
+                temperature=temperature,
+                stop_sequences=["\nUser:"],
             ):
                 if not response.token.special:
                     output_text += response.token.text
-                    # stop generation once we hit "User:"
+                    # don't show "User:" in the live output
                     idx = output_text.find("User:")
                     if idx > 0:
                         output_text = output_text[:idx].strip()
-                        exit = True
-
                     output_panel.renderable = Markdown(
                         output_text, inline_code_theme="monokai"
                     )
-
-                    if exit:
-                        break
-                else:
-                    console.log(response.token)
     except errors.RateLimitExceededError as e:
         console.print(
             f"[bold red]Hugging Face Inference API rate limit exceeded. Please try again later or set a Hugging Face token. {e}[/bold red]"
@@ -224,9 +253,8 @@ def get_model_chat_response(
 
     input_messages.append(format_assistant_output(output_text))
 
-    if len(input_messages) > 10:
+    if len(input_messages) > 8:
         # remove oldest 1 user/assistant output pair
-        input_messages.pop(0)
-        input_messages.pop(0)
+        input_messages = input_messages[2:]
 
     return input_messages

@@ -15,37 +15,10 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 
 from developergpt import config, few_shot_prompts, utils
-
-JSON_CMD_FORMAT = """
-    {
-        "input": "<user input>",
-        "error": 0,
-        "commands": [
-            {
-                "seq": <Order of Command>,
-                "cmd_to_execute": "<commands and arguments to execute>",
-                "cmd_explanations": ["<explanation of command 1>", "<explantion of command 2>", ...],
-                "arg_explanations": {"<arg1>": "<explanation of arg1>", "<arg2>": "<explanation of argument 2>", ...}
-            },
-            {
-                "seq": <Order of Command>,
-                "cmd_to_execute": "<commands and arguments to execute>",
-                "cmd_explanations": ["<explanation of command 1>", "<explantion of command 2>", ...],
-                "arg_explanations": {"<arg1>": "<explanation of arg1>", "<arg2>": "<explanation of argument 2>", ...}
-            }
-        ]
-    }
-    """
-
-JSON_CMD_FORMAT_FAST = """
-    {
-        "commands": ["<commands and arguments to execute>", "<commands and arguments to execute>", ...]
-    }
-    """
-
-JSON_INVALID_FORMAT = """{"input": "<user input>", "error": 1}"""
-
-JSON_INVALID_FORMAT_FAST = """{"error": 1}"""
+from developergpt.few_shot_prompts import (
+    INITIAL_USER_CMD_MSG,
+    INITIAL_USER_CMD_MSG_FAST,
+)
 
 INITIAL_CHAT_SYSTEM_MSG = {
     "role": "system",
@@ -68,31 +41,6 @@ INITIAL_CMD_SYSTEM_MSG = {
 }
 
 
-def format_initial_cmd_msg(cmd_format: str, invalid_format: str) -> dict:
-    return {
-        "role": "user",
-        "content": f"""
-                Provide the appropriate command-line commands that can be executed on a {config.USER_PLATFORM} machine for a user request.
-                Today's date/time is {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}.
-                If the request is possible, please provide commands that can be executed in the command line and do not require a GUI.
-                Do not include commands that require a yes/no response.
-                For each command, explain the command and any arguments used.
-                Try to find the simplest command(s) that can be used to execute the request.
-
-                If the request is valid, format each command output in the following JSON format: {cmd_format}
-
-                If the request is invalid, please return the following JSON format: {invalid_format}
-                """,
-    }
-
-
-INITIAL_USER_CMD_MSG = format_initial_cmd_msg(JSON_CMD_FORMAT, JSON_INVALID_FORMAT)
-
-INITIAL_USER_CMD_MSG_FAST = format_initial_cmd_msg(
-    JSON_CMD_FORMAT_FAST, JSON_INVALID_FORMAT_FAST
-)
-
-
 def format_user_request(
     user_request: str, platform: str = config.USER_PLATFORM
 ) -> dict:
@@ -108,7 +56,7 @@ def format_assistant_response(assistant_response: str) -> dict:
 
 BASE_INPUT_CMD_MSGS = [
     INITIAL_CMD_SYSTEM_MSG,
-    INITIAL_USER_CMD_MSG,
+    {"role": "user", "content": INITIAL_USER_CMD_MSG},
     format_user_request(
         few_shot_prompts.CONDA_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
     ),
@@ -129,7 +77,7 @@ BASE_INPUT_CMD_MSGS = [
 
 BASE_INPUT_CMD_MSGS_FAST = [
     INITIAL_CMD_SYSTEM_MSG,
-    INITIAL_USER_CMD_MSG_FAST,
+    {"role": "user", "content": INITIAL_USER_CMD_MSG_FAST},
     format_user_request(
         few_shot_prompts.CONDA_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
     ),
@@ -236,7 +184,6 @@ def model_command(
     client: OpenAI | Llama,
 ) -> Optional[str]:
     n_output_tokens = 4000
-    TEMP = 0.05
 
     if fast_mode:
         input_messages = list(BASE_INPUT_CMD_MSGS_FAST)
@@ -256,7 +203,7 @@ def model_command(
                     model=model_name,
                     messages=input_messages,
                     max_tokens=n_output_tokens,
-                    temperature=TEMP,
+                    temperature=config.CMD_TEMP,
                     response_format=response_format,
                 )
             else:
@@ -264,25 +211,18 @@ def model_command(
                 response = client.create_chat_completion_openai_v1(
                     messages=input_messages,
                     max_tokens=n_output_tokens,
-                    temperature=TEMP,
+                    temperature=config.CMD_TEMP,
                     response_format=response_format,
                 )
     except openai.RateLimitError:
         console.print("[bold red] Rate limit exceeded. Try again later.[/bold red]")
         sys.exit(-1)
     except openai.BadRequestError as e:
+        breakpoint()
         console.log(f"[bold red] Bad Request: {e}[/bold red]")
         sys.exit(-1)
     raw_output = response.choices[0].message.content
-    # clean up the output - Mistral7B ocassionally adds additional characters after JSON
-    startPos = raw_output.find("{")
-    if startPos != -1:
-        raw_output = raw_output[startPos:]
-    endPos = raw_output.rfind("}")
-    if endPos != -1:
-        raw_output = raw_output[: endPos + 1]
-    model_output = raw_output.strip()
-    return model_output
+    return utils.clean_model_output(raw_output)
 
 
 def check_open_ai_key(console: "Console", client: "OpenAI") -> None:

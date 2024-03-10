@@ -19,6 +19,18 @@ from rich.panel import Panel
 from developergpt import config
 
 
+def clean_model_output(raw_output: str) -> str:
+    # clean up the output - some models like to put ``` and ```or other text around the output JSON { }
+    startPos = raw_output.find("{")
+    if startPos != -1:
+        raw_output = raw_output[startPos:]
+    endPos = raw_output.rfind("}")
+    if endPos != -1:
+        raw_output = raw_output[: endPos + 1]
+    model_output = raw_output.strip()
+    return model_output
+
+
 def pretty_print_commands(commands: list, console: Console, panel_width: int) -> None:
     # print all the commands in a panel
     commands_format = "\n\n".join([f"""- `{c}`""" for c in commands])

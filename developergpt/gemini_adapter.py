@@ -2,7 +2,6 @@
 DeveloperGPT by luo-anthony
 """
 
-from datetime import datetime
 from typing import Optional
 
 import google.generativeai as genai
@@ -13,6 +12,10 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 
 from developergpt import config, few_shot_prompts, utils
+from developergpt.few_shot_prompts import (
+    INITIAL_USER_CMD_MSG,
+    INITIAL_USER_CMD_MSG_FAST,
+)
 
 # Seems to cause very odd LLM output behavior when used with the chat system
 # INITIAL_CHAT_SYSTEM_MSG = [
@@ -41,59 +44,6 @@ from developergpt import config, few_shot_prompts, utils
 #         ],
 #     ),
 # ]
-
-JSON_CMD_FORMAT = """
-    {
-        "input": "<user input>",
-        "error": 0,
-        "commands": [
-            {
-                "seq": <Order of Command>,
-                "cmd_to_execute": "<commands and arguments to execute>",
-                "cmd_explanations": ["<explanation of command 1>", "<explantion of command 2>", ...],
-                "arg_explanations": {"<arg1>": "<explanation of arg1>", "<arg2>": "<explanation of argument 2>", ...}
-            },
-            {
-                "seq": <Order of Command>,
-                "cmd_to_execute": "<commands and arguments to execute>",
-                "cmd_explanations": ["<explanation of command 1>", "<explantion of command 2>", ...],
-                "arg_explanations": {"<arg1>": "<explanation of arg1>", "<arg2>": "<explanation of argument 2>", ...}
-            }
-        ]
-    }
-    """
-
-JSON_CMD_FORMAT_FAST = """
-    {
-        "commands": ["<commands and arguments to execute>", "<commands and arguments to execute>", ...]
-    }
-    """
-
-JSON_INVALID_FORMAT = """{"input": "<user input>", "error": 1}"""
-
-JSON_INVALID_FORMAT_FAST = """{"error": 1}"""
-
-
-def format_initial_cmd_msg(cmd_format: str, invalid_format: str) -> str:
-    return f"""
-                Provide the appropriate command-line commands that can be executed on a {config.USER_PLATFORM} machine for a user request.
-                Today's date/time is {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}.
-                If the request is possible, please provide commands that can be executed in the command line and do not require a GUI.
-                Do not include commands that require a yes/no response.
-                For each command, explain the command and any arguments used.
-                Try to find the simplest command(s) that can be used to execute the request.
-
-                If the request is valid, format each command output in the following JSON format: {cmd_format}
-
-                If the request is invalid, please return the following JSON format: {invalid_format}
-                """
-
-
-INITIAL_USER_CMD_MSG = format_initial_cmd_msg(JSON_CMD_FORMAT, JSON_INVALID_FORMAT)
-
-INITIAL_USER_CMD_MSG_FAST = format_initial_cmd_msg(
-    JSON_CMD_FORMAT_FAST, JSON_INVALID_FORMAT_FAST
-)
 
 
 def format_user_request(
@@ -208,15 +158,6 @@ def model_command(
     with console.status("[bold blue]Decoding request") as _:
         response = gemini_model.generate_content(
             contents=input_messages,
-            generation_config=genai.types.GenerationConfig(temperature=0.1),
+            generation_config=genai.types.GenerationConfig(temperature=config.CMD_TEMP),
         )
-    # clean up the output - Gemini likes to put ``` and ```json around the output JSON { }
-    raw_output = response.text
-    startPos = raw_output.find("{")
-    if startPos != -1:
-        raw_output = raw_output[startPos:]
-    endPos = raw_output.rfind("}")
-    if endPos != -1:
-        raw_output = raw_output[: endPos + 1]
-    model_output = raw_output.strip()
-    return model_output
+    return utils.clean_model_output(response.text)
