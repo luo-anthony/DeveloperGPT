@@ -74,7 +74,7 @@ def model_command(
 ) -> str:
     model_name = config.HF_MODEL_MAP[model]
     client = InferenceAPIClient(model_name, token=api_token, timeout=TIMEOUT)
-    MAX_RESPONSE_TOKENS = 512
+    MAX_RESPONSE_TOKENS = 784
     if fast_mode:
         messages = list(HF_EXAMPLE_CMDS_FAST)
     else:
@@ -90,7 +90,7 @@ def model_command(
             exit = False
             output_text = ""
             for response in client.generate_stream(
-                model_input, max_new_tokens=MAX_RESPONSE_TOKENS
+                model_input, max_new_tokens=MAX_RESPONSE_TOKENS, temperature=0.05
             ):
                 if not response.token.special:
                     output_text += response.token.text

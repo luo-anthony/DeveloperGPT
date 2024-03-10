@@ -85,6 +85,7 @@ def main(ctx, temperature: float, model: str, offline: bool):
                 local_dir=config.OFFLINE_MODEL_CACHE_DIR,
                 local_dir_use_symlinks=True,
                 n_threads=8,
+                temperature=0.05,
             )
         else:
             model_path = os.path.join(config.OFFLINE_MODEL_CACHE_DIR, llm_file)
@@ -100,6 +101,7 @@ def main(ctx, temperature: float, model: str, offline: bool):
                 verbose=False,
                 n_ctx=config.OFFLINE_MODEL_CTX,
                 n_threads=8,
+                temperature=0.05,
             )
     elif model in config.OPENAI_MODEL_MAP:
         client = OpenAI(api_key=config.get_environ_key(config.OPEN_AI_API_KEY, console))
