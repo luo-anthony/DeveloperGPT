@@ -12,16 +12,17 @@ Additionally, DeveloperGPT supports [quantized Mistral-7B-Instruct](https://hugg
 
 #### Supported LLMs
 Switch between different LLMs using the `--model` flag: `developergpt --model [model_name] [cmd, chat]`
-| Model(s)                   | Source/Provider                                                      | Details                                                         |
-| -------------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `gemini` (default)         | [Google AI](https://deepmind.google/technologies/gemini/)            | Free (up to 60 requests per minute), Google AI API Key Required |
-| `mistral-q6`, `mistral-q4` | [Mistral](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2) | Free, Offline, On-Device, Open-Source                           |
-| `gpt35`, `gpt4`            | [OpenAI](https://platform.openai.com/docs/models)                    | Pay-Per-Usage, OpenAI API Key Required                          |
-| `zephyr`                   | [Zephyr](https://huggingface.co/HuggingFaceH4/zephyr-7b-beta)        | Free, Open-Source, Hugging-Face Inference API                   |
-| `openchat`                 | [OpenChat](https://huggingface.co/openchat/openchat_3.5)             | Free, Open-Source, Hugging-Face Inference API                   |
-| `gemma`                    | [Google AI](https://huggingface.co/google/gemma-7b)                  | Free, Open-Source, Hugging-Face Inference API                   |
+| Model(s)                   | Source                                                                                                            | Details                                                  |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| **Gemini Pro** (default)   | [Google AI (Gemini)](https://deepmind.google/technologies/gemini/)                                                | Free (up to 60 requests/min), Google AI API Key Required |
+| **Mistral-Q6, Mistral-Q4** | [Quantized GGUF Mistral-7B-Instruct](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF)               | Free, Open-Source, OFFLINE, ON-DEVICE                    |
+| **Mistral**                | [Mistral-7B-Instruct](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2)                                  | Free, Open-Source, Hugging Face Inference API            |
+| **GPT-35, GPT-4**          | [OpenAI](https://platform.openai.com/docs/models)                                                                 | Pay-Per-Usage, OpenAI API Key Required                   |
+| **Zephyr**                 | [Zephyr (7B-Beta)](https://huggingface.co/HuggingFaceH4/zephyr-7b-beta)                                           | Free, Open-Source, Hugging Face Inference API            |
+| **OpenChat**               | [OpenChat (3.5-0106)](https://huggingface.co/openchat/openchat-3.5-0106)                                          | Free, Open-Source, Hugging Face Inference API            |
+| **Gemma, Gemma-Base**      | [Gemma-Instruct](https://huggingface.co/google/gemma-7b), [Gemma-Base](https://huggingface.co/google/gemma-7b-it) | Free, Open-Source, Hugging Face Inference API            |
 
-- `mistral-q6` and `mistral-q4` are [quantized GGUF Mistral-7B-Instruct](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF) LLMs running locally on-device using llama.cpp (Q6_K quantized and Q4_K quantized models respectively)
+- `mistral-q6` and `mistral-q4` are [Quantized GGUF Mistral-7B-Instruct](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF) LLMs running locally on-device using llama.cpp (Q6_K quantized and Q4_K quantized models respectively)
 
 
 ### Features 
@@ -47,7 +48,7 @@ Use `developergpt --offline cmd` to use quantized Mistral-7B-Instruct running lo
 $ developergpt --offline cmd [your natural language command request]
 ```
 
-Use `developergpt --model [mistral-q6,mistral-q4,gpt35,gpt4,zephyr,openchat] cmd` to use a different LLM instead of Google Gemini.  
+Use `developergpt --model [model_name] cmd` to use a different LLM instead of Google Gemini.  
 ```bash
 # Example: Natural Language to Terminal Commands using the GPT3.5 instead of Gemini
 $ developergpt --model gpt35 cmd [your natural language command request]
@@ -63,13 +64,12 @@ $ developergpt chat
 
 ![Chat Example](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/chat_demo.gif)
 
-
 Use `developergpt --offline chat` to use quantized Mistral-7B-Instruct running locally on-device instead of Gemini via API. 
 
-Use `developergpt --model [mistral-q6,mistral-q4,gpt35,gpt4,zephyr,openchat] chat` to use a different LLM instead of Gemini. 
+Use `developergpt --model [model_name] chat` to use a different LLM instead of Gemini. 
 ```bash
 # Example
-$ developergpt --model gpt35 chat
+$ developergpt --model gemma chat
 ```
 
 Chat moderation is **NOT** implemented - all your chat messages should follow the terms of use of the LLM used. 

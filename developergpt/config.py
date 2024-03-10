@@ -28,11 +28,25 @@ GPT4 = "gpt4"
 OPENCHAT = "openchat"
 ZEPHYR = "zephyr"
 GEMMA = "gemma"
+GEMMA_BASE = "gemma-base"
 GEMINI = "gemini"
 MISTRAL_Q6 = "mistral-q6"
 MISTRAL_Q4 = "mistral-q4"
+MISTRAL_HF = "mistral"
+BLOOM = "bloom"  # not supported due to poor performance
 SUPPORTED_MODELS = set(
-    [GPT35, GPT4, GEMINI, OPENCHAT, ZEPHYR, MISTRAL_Q6, MISTRAL_Q4, GEMMA]
+    [
+        GPT35,
+        GPT4,
+        GEMINI,
+        OPENCHAT,
+        ZEPHYR,
+        MISTRAL_Q6,
+        MISTRAL_Q4,
+        MISTRAL_HF,
+        GEMMA,
+        GEMMA_BASE,
+    ]
 )
 OFFLINE_MODEL_CTX = 4000
 OFFLINE_MODELS = set([MISTRAL_Q6, MISTRAL_Q4])
@@ -59,8 +73,13 @@ OPENAI_MODEL_MAP = {
 HF_MODEL_MAP = {
     OPENCHAT: "openchat/openchat-3.5-0106",
     ZEPHYR: "HuggingFaceH4/zephyr-7b-beta",
-    GEMMA: "google/gemma-7b",
+    GEMMA: "google/gemma-7b-it",
+    GEMMA_BASE: "google/gemma-7b",
+    MISTRAL_HF: "mistralai/Mistral-7B-Instruct-v0.2",
+    BLOOM: "bigscience/bloom",
 }
+
+HF_INSTRUCT_MODELS = set([GEMMA, ZEPHYR, OPENCHAT, MISTRAL_HF])
 
 GOOGLE_MODEL_MAP = {
     GEMINI: "gemini-pro",
@@ -71,7 +90,7 @@ OPEN_AI_API_KEY = "OPENAI_API_KEY"
 HUGGING_FACE_API_KEY = "HUGGING_FACE_API_KEY"
 
 USER_PLATFORM = platform.platform()
-CMD_TEMP = 0.05
+CMD_TEMP = 0.01
 
 
 def get_environ_key(keyname: str, console: Console) -> str:
