@@ -1,0 +1,89 @@
+Using git, add another remote called “oss” at https://github.com/OpenAcousticDevices/AudioMoth-Project
+Using git, remove the oss remote 
+Cherry pick the last 3 git commits from low_power_mode onto current branch 
+List all git commits that contain the word “release”
+Using git, create and checkout a new branch called demo starting from the 3rd to latest commit from origin/main
+Using git, change the remote to https://github.com/luo-anthony/AudioMoth-EdgeImpulse-Anthony.git and reset the current branch to the main branch from the remote
+git tag current commit v0.1 and push to remote 
+Add data/fd.json to git lfs tracking 
+delete all local git branches except the current one 
+Using git, discard current changes, switch to main branch
+Using git, rebase changes from feature/llms onto current branch 
+Using git, reset src/models to latest on origin/main
+Using git, revert the last commit and push to origin main (overwriting previous commit)
+Change the author of last git commit
+Using git, find the author and commit which last modified temp.cpp
+List all git remotes 
+
+Find all files in ~/Desktop that were modified in the past day
+Set the $DM_API_KEY environment variable to the value “f8sjkdmn” and save it to my ~/. zshenv
+Print “filled” if there are at least 5 Python files in ~/Documents/DeveloperGPT
+Create a symlink from ~/Desktop/DemoFiles to ~/Documents/DemoSymlink
+Make ~/Desktop/DemoFiles/test.sh executable by everyone
+Rename all .mov files in ~/Desktop/DemoFiles to .mp4
+Print the last 3 lines of any file in ~/Documents/AudioMoth-EdgeImpulse that contains the phrase “March 2023” 
+Copy all C files in the current folder that are between 5 kB to 25 kB in size and contain the string “Cortex-M4” to a new folder “Cfiles”
+Copy all header files in the current folder that contain the string “March 2023” and were modified in the past year to a new folder “demo_headers”
+Check if a file “demo.txt” exists in ~/Desktop/DemoFiles. If it exists, print “exists”, otherwise create it
+Create a zip file from ~/Desktop/DemoFiles called “demo.zip”
+List all folders that contain at least 10 files
+Extract test.tar.gz
+Get total size of the ~/temp folder (including all files and subfolders) 
+Check if ~/Desktop/Demo is a symlink and if so what the linked file is
+Get character count of temp.txt
+Count number of lines in temp.txt that have the word "test" in it 
+Find all occurrences of "anthony" in temp.txt and replace with "tony"
+Calculate sha256sum of all files in the current folder 
+See last 50 lines of running_proc.log
+See first 100 lines of bootup.log
+
+Get the subnet mask for en0
+Get current user 
+Write the current CPU usage to a file called "cpu.txt"
+List all processes using more than 50 MB of RAM.
+Get current disk usage
+Get the MAC address of en0
+Kill process running on port 4321
+See how long the process with pid 17083 has been running
+Kill all running python processes
+Get hard open file descriptor limit 
+Set hard max process limit to 100000
+Get current hostname 
+Get current IP address 
+Get ping RTT to google.com
+Get current system time including time zone
+List all devices connected on network
+Make POST request to https://test-endpoint:9000 with the body {"ping": true}
+List all environment variables that contain the word API
+List all users on the system 
+Flush the DNS cache
+List all open network ports 
+Copy ~/demoFolder to the home directory of user aluo on 206.126.213.191
+Get the IP address of remote_server 
+Download contents of https://test-endpoint:8080/data.zip
+Change permission of ~/Documents/LLM and all subfiles to be read/write/execute only by me 
+Create a 50MB file of random data called randdata
+Change ownership of ~/Documents/mywork and all subfiles to me
+List all USB devices 
+Unset all environment variables that start with GEMINI_
+Make get request with curl using the world time api for NYC
+List all drives
+Remount /dev/disk4 and print "remounted" when complete 
+
+Install numpy 
+Delete the “demo” conda environment and create a new environment called demo2 with Python 3.9 and matplotlib installed in the environment
+Create a new virtual environment called demovenv
+Connect to postgres db named my_db on localhost on default port with the username admin
+Remove all downloaded docker images 
+List all installed packages 
+View logs of docker container 0daa6ab42
+Modify tmux configuration to enable mouse mode 
+Generate a new ssh key 
+Backup postgres db named my_db to a backup file 
+Stop all running docker containers 
+Take a screenshot of the entire screen and save to ~/Desktop/m_screenshot.png
+
+She sells seashells by the sea shore
+hello 1 2 3 hello echo
+Install Windows in my current operating system
+Download some more RAM onto this machine

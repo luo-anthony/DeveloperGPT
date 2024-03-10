@@ -323,6 +323,156 @@ def cmd(ctx, user_input, fast):
         sys.exit(0)
 
 
+@main.command()
+@click.option(
+    "--rpath",
+    help="The set of evaluation requests (txt file) to run.",
+)
+@click.option(
+    "--output",
+    help="Output folder to save the results.",
+)
+@click.option(
+    "--rate_limit",
+    default=0,
+    help="seconds to wait between commands",
+)
+@click.option(
+    "--fast",
+    is_flag=True,
+    default=False,
+    help="Get commands without command or argument explanations (less accurate)",
+)
+@click.option(
+    "--start",
+    default=0,
+    help="request n to start at",
+)
+@click.pass_context
+def evaluate(ctx, rpath: str, output: str, rate_limit: int, fast: bool, start: int):
+    import csv
+    import json
+    import logging
+    import time
+    from datetime import datetime
+
+    logging.basicConfig(level=logging.INFO)
+
+    COMMAND_SEP = " [~] "
+
+    model = ctx.obj["model"]
+    datetime_string = datetime.now().strftime("%m-%d_%H-%M")
+    output_file_path = f"{output}/{model}_{datetime_string}_results.csv"
+    config_file_path = f"{output}/{model}_{datetime_string}_config.txt"
+    raw_output_file_path = f"{output}/{model}_{datetime_string}_raw_model_output.txt"
+    with open(rpath, "r") as file:
+        requests = file.readlines()
+
+    res_data = []
+    raw_res_data = []
+    n_requests = 0
+    elapsed_time = 0.0
+    requests = [r for r in requests if r.strip()]
+
+    with open(config_file_path, "w") as file:
+        file.write(f"Requests={rpath}\n")
+        file.write(f"Model={model}\n")
+        file.write(f"Fast_Mode={fast}\n")
+        file.write(f"{ctx.obj}\n")
+
+    for i in range(start, len(requests)):
+        if rate_limit:
+            time.sleep(rate_limit)
+
+        req = requests[i]
+        req = req.strip()
+        with open(raw_output_file_path, "w") as file:
+            file.writelines(raw_res_data)
+
+        n_requests += 1
+        logging.info(f"Request: {req}")
+
+        start_time = time.time()
+        if model in config.OPENAI_MODEL_MAP or model in config.LLAMA_CPP_MODEL_MAP:
+            # llama.cpp models are OpenAI API drop-in compatible
+            client = ctx.obj["client"]
+            model_output = openai_adapter.model_command(
+                user_input=req,
+                console=console,
+                fast_mode=fast,
+                model=model,
+                client=client,
+            )
+        elif model in config.HF_MODEL_MAP:
+            api_token = ctx.obj.get("api_key", None)
+            model_output = huggingface_adapter.model_command(
+                user_input=req,
+                console=console,
+                api_token=api_token,
+                fast_mode=fast,
+                model=model,
+            )
+        elif model in config.GOOGLE_MODEL_MAP:
+            model_output = gemini_adapter.model_command(
+                user_input=req,
+                console=console,
+                fast_mode=fast,
+                model=model,
+            )
+        elif model in config.ANTHROPIC_MODEL_MAP:
+            model_output = anthropic_adapter.model_command(
+                user_input=req,
+                console=console,
+                fast_mode=fast,
+                model=model,
+                client=ctx.obj["client"],
+            )
+        else:
+            logging.error("Invalid model")
+            sys.exit(-1)
+        end_time = time.time()
+        response_time = end_time - start_time
+        elapsed_time += response_time
+        try:
+            output_data = json.loads(model_output)
+        except json.decoder.JSONDecodeError:
+            res_data.append((i, req, "INVALID_JSON", response_time))
+            raw_res_data.append(f"{req}\n{model_output}\n\n")
+            continue
+
+        if output_data.get("error", 0) or "commands" not in output_data:
+            res_data.append((i, req, "ERROR / NO COMMAND", response_time))
+            raw_res_data.append(f"{req}\n{model_output}\n\n")
+            continue
+
+        commands = output_data.get("commands", [])
+        if fast:
+            cmd_strings = commands
+        else:
+            cmd_strings = [cmd.get("cmd_to_execute", "") for cmd in commands]
+        res_data.append((i, req, COMMAND_SEP.join(cmd_strings), response_time))
+        raw_res_data.append(f"{req}\n{model_output}\n\n")
+
+        logging.info(res_data[-1])
+
+    print(
+        f"\n------------\n{model} Total Run Time: {elapsed_time}, Num Requests: {n_requests}"
+    )
+    print(f"{model} Sec/Request: {elapsed_time/n_requests}")
+
+    COLUMNS = ["N", "Request", "Output", "Response Time"]
+    with open(output_file_path, "w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(COLUMNS)  # Write the header row
+        writer.writerows(res_data)
+
+    # Open the file in append mode and write the text
+    with open(config_file_path, "a") as file:
+        file.write(f"\nTotal Run Time={elapsed_time}\n")
+        file.write(f"Num Requests={n_requests}\n")
+        file.write(f"Sec/Request={elapsed_time/n_requests}\n")
+
+
 """
 @main.command()
 @click.pass_context
