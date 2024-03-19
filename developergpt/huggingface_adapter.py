@@ -59,15 +59,15 @@ HF_EXAMPLE_CMDS_FAST = [
     format_user_cmd_request(
         few_shot_prompts.CONDA_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
     ),
-    format_assistant_output(few_shot_prompts.CONDA_OUTPUT_EXAMPLE_MARKDOWN),
+    format_assistant_output(few_shot_prompts.CONDA_OUTPUT_EXAMPLE_FAST),
     format_user_cmd_request(
         few_shot_prompts.SEARCH_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
     ),
-    format_assistant_output(few_shot_prompts.SEARCH_OUTPUT_EXAMPLE_MARKDOWN),
+    format_assistant_output(few_shot_prompts.SEARCH_OUTPUT_EXAMPLE_FAST),
     format_user_cmd_request(
         few_shot_prompts.PROCESS_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
     ),
-    format_assistant_output(few_shot_prompts.PROCESS_OUTPUT_EXAMPLE_MARKDOWN),
+    format_assistant_output(few_shot_prompts.PROCESS_OUTPUT_EXAMPLE_FAST),
 ]
 
 

@@ -58,29 +58,25 @@ def print_command_response(
 
     panel_width = min(console.width, config.DEFAULT_COLUMN_WIDTH)
 
-    if fast_mode and model in config.HF_MODEL_MAP:
-        cmd_strings = model_output.split("`\n")
-        cmd_strings = [c.replace("`", "") for c in cmd_strings]
-    else:
-        try:
-            output_data = json.loads(model_output)
-        except json.decoder.JSONDecodeError:
-            console.print(
-                "[bold red]Error: Could not parse model response properly[/bold red]"
-            )
-            console.log(model_output)
-            return []
+    try:
+        output_data = json.loads(model_output)
+    except json.decoder.JSONDecodeError:
+        console.print(
+            "[bold red]Error: Could not parse model response properly[/bold red]"
+        )
+        console.log(model_output)
+        return []
 
-        if output_data.get("error", 0) or "commands" not in output_data:
-            console.print(
-                "[bold red]Error: Could not find commands for this request[/bold red]"
-            )
-            return []
-        commands = output_data.get("commands", [])
-        if fast_mode:
-            cmd_strings = commands
-        else:
-            cmd_strings = [cmd.get("cmd_to_execute", "") for cmd in commands]
+    if output_data.get("error", 0) or "commands" not in output_data:
+        console.print(
+            "[bold red]Error: Could not find commands for this request[/bold red]"
+        )
+        return []
+    commands = output_data.get("commands", [])
+    if fast_mode:
+        cmd_strings = commands
+    else:
+        cmd_strings = [cmd.get("cmd_to_execute", "") for cmd in commands]
 
     # print all the commands in a panel
     pretty_print_commands(cmd_strings, console, panel_width)
