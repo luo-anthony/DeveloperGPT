@@ -373,35 +373,43 @@ def evaluate(ctx, rpath: str, output: str, rate_limit: int, fast: bool, start: i
         logging.info(f"Request: {req}")
 
         start_time = time.time()
-        if model in config.OPENAI_MODEL_MAP or model in config.LLAMA_CPP_MODEL_MAP:
-            # llama.cpp models are OpenAI API drop-in compatible
-            client = ctx.obj["client"]
-            model_output = openai_adapter.model_command(
-                user_input=req,
-                console=console,
-                fast_mode=fast,
-                model=model,
-                client=client,
+        try:
+            if model in config.OPENAI_MODEL_MAP or model in config.LLAMA_CPP_MODEL_MAP:
+                # llama.cpp models are OpenAI API drop-in compatible
+                client = ctx.obj["client"]
+                model_output = openai_adapter.model_command(
+                    user_input=req,
+                    console=console,
+                    fast_mode=fast,
+                    model=model,
+                    client=client,
+                )
+            elif model in config.HF_MODEL_MAP:
+                api_token = ctx.obj.get("api_key", None)
+                model_output = huggingface_adapter.model_command(
+                    user_input=req,
+                    console=console,
+                    api_token=api_token,
+                    fast_mode=fast,
+                    model=model,
+                )
+            elif model in config.GOOGLE_MODEL_MAP:
+                model_output = gemini_adapter.model_command(
+                    user_input=req,
+                    console=console,
+                    fast_mode=fast,
+                    model=model,
+                )
+            else:
+                logging.error("Invalid model")
+                sys.exit(-1)
+        except ValueError as e:
+            res_data.append(
+                (i, req, "MODEL ERROR HARM DETECTED", time.time() - start_time)
             )
-        elif model in config.HF_MODEL_MAP:
-            api_token = ctx.obj.get("api_key", None)
-            model_output = huggingface_adapter.model_command(
-                user_input=req,
-                console=console,
-                api_token=api_token,
-                fast_mode=fast,
-                model=model,
-            )
-        elif model in config.GOOGLE_MODEL_MAP:
-            model_output = gemini_adapter.model_command(
-                user_input=req,
-                console=console,
-                fast_mode=fast,
-                model=model,
-            )
-        else:
-            logging.error("Invalid model")
-            sys.exit(-1)
+            raw_res_data.append(f"{req}\nNO MODEL OUTPUT\n\n")
+            continue
+
         end_time = time.time()
         response_time = end_time - start_time
         elapsed_time += response_time
