@@ -115,25 +115,25 @@ def model_command(
             json_str_attempt = utils.clean_model_output(output_text)
 
             # smaller instruction tuned models tend to exhibit more erratic behavior - we need a two-step JSON parse
-            if not instruct_model:
-                return json_str_attempt
-            else:
-                try:
-                    _ = json.loads(json_str_attempt)
-                    # valid JSON -> return the cleaned output
-                    return json_str_attempt
-                except json.decoder.JSONDecodeError:
-                    # invalid JSON -> ask model to extract the JSON
-                    extract_json_request = f"""Extract and return only the first JSON block from the following text. 
-                    The output should be only valid JSON:\n
-                    {json_str_attempt}
-                    """
-                    second_attempt = client.generate(
-                        extract_json_request,
-                        max_new_tokens=MAX_RESPONSE_TOKENS,
-                        temperature=config.CMD_TEMP,
-                    ).generated_text
-                    return utils.clean_model_output(second_attempt)
+            # if not instruct_model:
+            return json_str_attempt  # NOTE: temporarily turn off JSON correction and see how mistral does
+            # else:
+            #     try:
+            #         _ = json.loads(json_str_attempt)
+            #         # valid JSON -> return the cleaned output
+            #         return json_str_attempt
+            #     except json.decoder.JSONDecodeError:
+            #         # invalid JSON -> ask model to extract the JSON
+            #         extract_json_request = f"""Extract and return only the first JSON block from the following text.
+            #         The output should be only valid JSON:\n
+            #         {json_str_attempt}
+            #         """
+            #         second_attempt = client.generate(
+            #             extract_json_request,
+            #             max_new_tokens=MAX_RESPONSE_TOKENS,
+            #             temperature=config.CMD_TEMP,
+            #         ).generated_text
+            #         return utils.clean_model_output(second_attempt)
 
         except errors.RateLimitExceededError as e:
             console.print(
