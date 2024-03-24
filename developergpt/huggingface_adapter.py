@@ -83,10 +83,11 @@ def model_command(
     instruct_model = model in config.HF_INSTRUCT_MODELS
     client = InferenceAPIClient(model_name, token=api_token, timeout=TIMEOUT)
     MAX_RESPONSE_TOKENS = 784
-    if fast_mode:
-        messages = list(HF_EXAMPLE_CMDS_FAST)
-    else:
-        messages = list(HF_EXAMPLE_CMDS)
+    # if fast_mode:
+    #     messages = list(HF_EXAMPLE_CMDS_FAST)
+    # else:
+    #     messages = list(HF_EXAMPLE_CMDS)
+    messages = []  # TEMP: ZERO SHOT
     messages.append(format_user_cmd_request(user_input))
 
     if instruct_model:
@@ -102,7 +103,7 @@ def model_command(
         model_input = model_input = (
             HF_CMD_PROMPT_COMPLETION_MODEL + "\n" + "\n".join(messages) + "\nAssistant:"
         )
-
+    breakpoint()
     with console.status("[bold blue]Decoding request") as _:
         try:
             output_text = client.generate(

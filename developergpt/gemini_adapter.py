@@ -64,51 +64,51 @@ def format_assistant_response(assistant_response: str) -> dict:
 BASE_INPUT_CMD_MSGS = [
     {"role": "user", "parts": [INITIAL_USER_CMD_MSG]},
     {"role": "model", "parts": ["Understood!"]},
-    format_user_request(
-        few_shot_prompts.CONDA_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
-    ),
-    format_assistant_response(few_shot_prompts.CONDA_OUTPUT_EXAMPLE),
-    format_user_request(
-        few_shot_prompts.SEARCH_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
-    ),
-    format_assistant_response(
-        few_shot_prompts.SEARCH_OUTPUT_EXAMPLE,
-    ),
-    format_user_request(
-        few_shot_prompts.UNKNOWN_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
-    ),
-    format_assistant_response(
-        few_shot_prompts.UNKNOWN_QUERY_OUTPUT_EXAMPLE_ONE,
-    ),
+    # format_user_request(
+    #     few_shot_prompts.CONDA_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
+    # ),
+    # format_assistant_response(few_shot_prompts.CONDA_OUTPUT_EXAMPLE),
+    # format_user_request(
+    #     few_shot_prompts.SEARCH_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
+    # ),
+    # format_assistant_response(
+    #     few_shot_prompts.SEARCH_OUTPUT_EXAMPLE,
+    # ),
+    # format_user_request(
+    #     few_shot_prompts.UNKNOWN_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
+    # ),
+    # format_assistant_response(
+    #     few_shot_prompts.UNKNOWN_QUERY_OUTPUT_EXAMPLE_ONE,
+    # ),
 ]
 
 BASE_INPUT_CMD_MSGS_FAST = [
     {"role": "user", "parts": [INITIAL_USER_CMD_MSG_FAST]},
     {"role": "model", "parts": ["Understood!"]},
-    format_user_request(
-        few_shot_prompts.CONDA_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
-    ),
-    format_assistant_response(
-        few_shot_prompts.CONDA_OUTPUT_EXAMPLE_FAST,
-    ),
-    format_user_request(
-        few_shot_prompts.SEARCH_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
-    ),
-    format_assistant_response(
-        few_shot_prompts.SEARCH_OUTPUT_EXAMPLE_FAST,
-    ),
-    format_user_request(
-        few_shot_prompts.PROCESS_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
-    ),
-    format_assistant_response(
-        few_shot_prompts.PROCESS_OUTPUT_EXAMPLE_FAST,
-    ),
-    format_user_request(
-        few_shot_prompts.UNKNOWN_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
-    ),
-    format_assistant_response(
-        few_shot_prompts.UNKNOWN_QUERY_OUTPUT_EXAMPLE_ONE_FAST,
-    ),
+    # format_user_request(
+    #     few_shot_prompts.CONDA_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
+    # ),
+    # format_assistant_response(
+    #     few_shot_prompts.CONDA_OUTPUT_EXAMPLE_FAST,
+    # ),
+    # format_user_request(
+    #     few_shot_prompts.SEARCH_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
+    # ),
+    # format_assistant_response(
+    #     few_shot_prompts.SEARCH_OUTPUT_EXAMPLE_FAST,
+    # ),
+    # format_user_request(
+    #     few_shot_prompts.PROCESS_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
+    # ),
+    # format_assistant_response(
+    #     few_shot_prompts.PROCESS_OUTPUT_EXAMPLE_FAST,
+    # ),
+    # format_user_request(
+    #     few_shot_prompts.UNKNOWN_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
+    # ),
+    # format_assistant_response(
+    #     few_shot_prompts.UNKNOWN_QUERY_OUTPUT_EXAMPLE_ONE_FAST,
+    # ),
 ]
 
 
