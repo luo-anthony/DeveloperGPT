@@ -306,6 +306,19 @@ def test(ctx):
             continue
 """
 
+"""
+@main.command(help="Used for manual testing of all models")
+@click.pass_context
+def manual_test_cases(ctx):
+    for model in config.SUPPORTED_MODELS:
+        console.print(
+            f"developergpt --model {model} cmd find all files in ~/Documents larger than 50kB"
+        )
+        console.print(
+            f"developergpt --model {model} cmd --fast find all files in ~/Documents larger than 50kB"
+        )
+        console.print(f"developergpt --model {model} chat")
+"""
 
 if __name__ == "__main__":
     main()

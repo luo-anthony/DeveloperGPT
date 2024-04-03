@@ -67,7 +67,7 @@ LLAMA_CPP_MODEL_MAP = {
 
 OPENAI_MODEL_MAP = {
     GPT35: "gpt-3.5-turbo",
-    GPT4: "gpt-4",
+    GPT4: "gpt-4-turbo-preview",
 }
 
 HF_MODEL_MAP = {
@@ -82,7 +82,7 @@ HF_MODEL_MAP = {
 HF_INSTRUCT_MODELS = set([GEMMA, ZEPHYR, OPENCHAT, MISTRAL_HF])
 
 GOOGLE_MODEL_MAP = {
-    GEMINI: "gemini-pro",
+    GEMINI: "gemini-1.0-pro",
 }
 
 GOOGLE_API_KEY = "GOOGLE_API_KEY"

@@ -59,15 +59,15 @@ HF_EXAMPLE_CMDS_FAST = [
     format_user_cmd_request(
         few_shot_prompts.CONDA_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
     ),
-    format_assistant_output(few_shot_prompts.CONDA_OUTPUT_EXAMPLE_MARKDOWN),
+    format_assistant_output(few_shot_prompts.CONDA_OUTPUT_EXAMPLE_FAST),
     format_user_cmd_request(
         few_shot_prompts.SEARCH_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
     ),
-    format_assistant_output(few_shot_prompts.SEARCH_OUTPUT_EXAMPLE_MARKDOWN),
+    format_assistant_output(few_shot_prompts.SEARCH_OUTPUT_EXAMPLE_FAST),
     format_user_cmd_request(
         few_shot_prompts.PROCESS_REQUEST, platform=few_shot_prompts.EXAMPLE_PLATFORM
     ),
-    format_assistant_output(few_shot_prompts.PROCESS_OUTPUT_EXAMPLE_MARKDOWN),
+    format_assistant_output(few_shot_prompts.PROCESS_OUTPUT_EXAMPLE_FAST),
 ]
 
 
@@ -150,6 +150,9 @@ def model_command(
                 "[bold red]Hugging Face Inference API request timed out. Try again later.[/bold red]"
             )
             sys.exit(-1)
+        except Exception as e:
+            console.print(f"[bold red]Error: {e}[/bold red]")
+            sys.exit(-1)
 
 
 """
@@ -167,7 +170,7 @@ RAW_CHAT_MSGS = [
     with x86 using a CISC instruction set and ARM using a RISC instruction set. x86 processors typically have higher clock speeds and can execute more instructions per clock cycle, while ARM processors are more power-efficient.
     x86 processors are compatible with a wide range of operating systems, while ARM processors are commonly used in mobile devices and are generally less expensive than x86 processors.""",
     "User: What are LDFLAGS in a Makefile?",
-    """Assistant, LDFLAGS is a variable used in Makefiles that contains linker flags or options to pass to the linker program. 
+    """Assistant: LDFLAGS is a variable used in Makefiles that contains linker flags or options to pass to the linker program. 
     Linker flags control the behavior of the linker, which is responsible for linking together object files into an executable or library file. 
     LDFLAGS can be used to specify library paths, libraries to link against, and other linker options such as optimization flags or debug information. 
     By setting LDFLAGS in a Makefile, you can customize the linking process and provide additional options to the linker.""",
@@ -250,7 +253,6 @@ def get_model_chat_response(
             f"[bold red]Hugging Face Inference API returned a bad request. {e}[/bold red]"
         )
         sys.exit(-1)
-
     input_messages.append(format_assistant_output(output_text))
 
     if len(input_messages) > 8:

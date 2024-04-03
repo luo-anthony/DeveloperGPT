@@ -218,9 +218,12 @@ def model_command(
         console.print("[bold red] Rate limit exceeded. Try again later.[/bold red]")
         sys.exit(-1)
     except openai.BadRequestError as e:
-        breakpoint()
         console.log(f"[bold red] Bad Request: {e}[/bold red]")
         sys.exit(-1)
+    except openai.APIError as e:
+        console.log(f"[bold red] OpenAI API Error: {e}[/bold red]")
+        sys.exit(-1)
+
     raw_output = response.choices[0].message.content
     return utils.clean_model_output(raw_output)
 
@@ -233,4 +236,12 @@ def check_open_ai_key(console: "Console", client: "OpenAI") -> None:
         console.print(
             f"[bold red]Error: Invalid OpenAI API key. Check your {config.OPEN_AI_API_KEY} environment variable.[/bold red]"
         )
+        sys.exit(-1)
+    except openai.PermissionDeniedError:
+        console.print(
+            "[bold red]Error: OpenAI API Permission Denied. Your location may not be supported by OpenAI.[/bold red]"
+        )
+        sys.exit(-1)
+    except openai.APIError as e:
+        console.print(f"[bold red]Error: OpenAI API error: {e}.[/bold red]")
         sys.exit(-1)
