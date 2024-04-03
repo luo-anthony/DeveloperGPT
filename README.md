@@ -90,7 +90,7 @@ $ developergpt
 
 ### Setup
 #### Using Google Gemini (Default)
-By default, DeveloperGPT uses Google Gemini Pro. To use Gemini Pro, you will need an API key (free to use up to 60 queries per minute).
+By default, DeveloperGPT uses Google Gemini Pro. To use Gemini Pro, you will need an API key (free to use up to 15 queries per minute).
 
 1. Get your own Google AI Studio API Key: https://makersuite.google.com/app/apikey
 2. Set your Google API Key as an environment variable. You only need to do this once. 
