@@ -114,6 +114,20 @@ def get_model_chat_response(
     model: str,
     client: OpenAI | Llama,
 ) -> list:
+    """
+    Get the chat response from the model.
+
+    Args:
+        user_input (str): The user's input message.
+        console (Console): The console object for printing messages.
+        input_messages (list): The list of input messages exchanged between the user and the model.
+        temperature (float): The temperature parameter for controlling the randomness of the model's output.
+        model (str): The name of the model to use for generating the response.
+        client (OpenAI | Llama): The client object for making API requests to the model.
+
+    Returns:
+        list: The updated list of input messages, including the generated response.
+    """
     MAX_TOKENS = 4000
     RESERVED_OUTPUT_TOKENS = 1024
     MAX_INPUT_TOKENS = MAX_TOKENS - RESERVED_OUTPUT_TOKENS
@@ -163,16 +177,17 @@ def get_model_chat_response(
                     output_panel.renderable = Markdown(
                         "".join(collected_messages), inline_code_theme="monokai"
                     )
+
+        full_response = "".join(collected_messages)
+        input_messages.append(format_assistant_response(full_response))
+        return input_messages
+
     except openai.RateLimitError:
         console.print("[bold red] Rate limit exceeded. Try again later.[/bold red]")
-        sys.exit(-1)
     except openai.BadRequestError as e:
         console.log(f"[bold red] Bad Request: {e}[/bold red]")
-        sys.exit(-1)
 
-    full_response = "".join(collected_messages)
-    input_messages.append(format_assistant_response(full_response))
-    return input_messages
+    sys.exit(-1)
 
 
 def model_command(
@@ -183,6 +198,19 @@ def model_command(
     model: str,
     client: OpenAI | Llama,
 ) -> Optional[str]:
+    """
+    Get command suggestion from model.
+
+    Args:
+        user_input (str): The user's natural language terminal command request.
+        console (Console): The console object for displaying status messages.
+        fast_mode (bool): Flag indicating whether to use fast mode.
+        model (str): The model to use for generating the response.
+        client (OpenAI | Llama): The client object for making API requests.
+
+    Returns:
+        Optional[str]: The model's response as a string, or None if there is no response.
+    """
     n_output_tokens = 4000
 
     if fast_mode:
@@ -225,23 +253,22 @@ def model_command(
         sys.exit(-1)
 
     raw_output = response.choices[0].message.content
-    return utils.clean_model_output(raw_output)
+    return utils.clean_model_output(raw_output) if raw_output else None
 
 
 def check_open_ai_key(console: "Console", client: "OpenAI") -> None:
     """Check if the OpenAI API key is valid."""
     try:
         _ = client.models.list()
+        return
     except openai.AuthenticationError:
         console.print(
             f"[bold red]Error: Invalid OpenAI API key. Check your {config.OPEN_AI_API_KEY} environment variable.[/bold red]"
         )
-        sys.exit(-1)
     except openai.PermissionDeniedError:
         console.print(
             "[bold red]Error: OpenAI API Permission Denied. Your location may not be supported by OpenAI.[/bold red]"
         )
-        sys.exit(-1)
     except openai.APIError as e:
         console.print(f"[bold red]Error: OpenAI API error: {e}.[/bold red]")
-        sys.exit(-1)
+    sys.exit(-1)

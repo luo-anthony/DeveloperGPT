@@ -20,7 +20,11 @@ from developergpt import config
 
 
 def clean_model_output(raw_output: str) -> str:
-    # clean up the output - some models like to put ``` and ```or other text around the output JSON { }
+    """
+    Clean up the model output to remove any extraneous text.
+    Some models like to put ``` and ```or other text around the output JSON { }
+    """
+    raw_output = raw_output.strip()
     startPos = raw_output.find("{")
     if startPos != -1:
         raw_output = raw_output[startPos:]
@@ -32,7 +36,7 @@ def clean_model_output(raw_output: str) -> str:
 
 
 def pretty_print_commands(commands: list, console: Console, panel_width: int) -> None:
-    # print all the commands in a panel
+    """Pretty print the commands in a panel"""
     commands_format = "\n\n".join([f"""- `{c}`""" for c in commands])
 
     cmd_out = Markdown(
@@ -51,8 +55,9 @@ def pretty_print_commands(commands: list, console: Console, panel_width: int) ->
 
 
 def print_command_response(
-    model_output: Optional[str], console: Console, fast_mode: bool, model: str
+    model_output: Optional[str], console: Console, fast_mode: bool
 ) -> list:
+    """Print the commands and explanations from the model output in terminal GUI."""
     if not model_output:
         return []
 
@@ -118,6 +123,7 @@ def prompt_user_input(
     auto_suggest=None,
     key_bindings=None,
 ) -> str:
+    """Prompt the user for input and handle exit if requested."""
     user_input = session.prompt(
         input_request,
         style=config.INPUT_STYLE,
@@ -208,7 +214,7 @@ def remove_old_contexts(
 
 
 class PathCompleter(Completer):
-    """A completer for file paths."""
+    """A completer for file paths for terminal input."""
 
     def get_completions(self, document, complete_event):
         if complete_event.completion_requested:
@@ -216,8 +222,6 @@ class PathCompleter(Completer):
             cwd = os.getcwd()
 
             text = document.text_before_cursor.lstrip().lower().split(" ")[-1]
-            # print(f"text={text}")
-
             auto_completion = []
 
             if text.startswith("~/"):
@@ -230,18 +234,14 @@ class PathCompleter(Completer):
             curr_dir = os.path.dirname(f_path)
             fname = os.path.basename(f_path) if len(text) > 0 else ""
 
-            # print(f"f_path={f_path}, fname={fname}, curr_dir={dir}")
-
             if os.path.isdir(curr_dir):
                 # Generate a list of matching file names in the current directory
-                # TODO: possibly change to glob + re to handle regular expressions
                 auto_completion = [
                     os.path.join(curr_dir, f)
                     for f in os.listdir(curr_dir)
                     if fname in f.lower()
                 ]
 
-            # Yield the completions
             for completion in auto_completion:
                 # simplify the completion substitution if possible
                 if text.startswith("~/"):
