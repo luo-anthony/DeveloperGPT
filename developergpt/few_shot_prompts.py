@@ -1,33 +1,31 @@
 from datetime import datetime
 
-from developergpt import config
-
 JSON_CMD_FORMAT = """
-    {
-        "input": "<user input>",
-        "error": 0,
-        "commands": [
-            {
-                "seq": <Order of Command>,
-                "cmd_to_execute": "<commands and arguments to execute>",
-                "cmd_explanations": ["<explanation of command 1>", "<explantion of command 2>", ...],
-                "arg_explanations": {"<arg1>": "<explanation of arg1>", "<arg2>": "<explanation of argument 2>", ...}
-            },
-            {
-                "seq": <Order of Command>,
-                "cmd_to_execute": "<commands and arguments to execute>",
-                "cmd_explanations": ["<explanation of command 1>", "<explantion of command 2>", ...],
-                "arg_explanations": {"<arg1>": "<explanation of arg1>", "<arg2>": "<explanation of argument 2>", ...}
-            }
-        ]
-    }
-    """
+{
+    "input": "<user input>",
+    "error": 0,
+    "commands": [
+        {
+            "seq": <Order of Command>,
+            "cmd_to_execute": "<commands and arguments to execute>",
+            "cmd_explanations": ["<explanation of command 1>", "<explantion of command 2>", ...],
+            "arg_explanations": {"<arg1>": "<explanation of arg1>", "<arg2>": "<explanation of argument 2>", ...}
+        },
+        {
+            "seq": <Order of Command>,
+            "cmd_to_execute": "<commands and arguments to execute>",
+            "cmd_explanations": ["<explanation of command 1>", "<explantion of command 2>", ...],
+            "arg_explanations": {"<arg1>": "<explanation of arg1>", "<arg2>": "<explanation of argument 2>", ...}
+        }
+    ]
+}
+"""
 
 JSON_CMD_FORMAT_FAST = """
-    {
-        "commands": ["<commands and arguments to execute>", "<commands and arguments to execute>", ...]
-    }
-    """
+{
+    "commands": ["<commands and arguments to execute>", "<commands and arguments to execute>", ...]
+}
+"""
 
 JSON_INVALID_FORMAT = """{"input": "<user input>", "error": 1}"""
 
@@ -92,11 +90,13 @@ CONDA_OUTPUT_EXAMPLE_MARKDOWN = """
 `bash Miniconda3-latest-MacOSX-x86_64.sh`\n
 """
 
-SEARCH_REQUEST = "search ~/Documents directory for any .py file that begins with 'test'"
+SEARCH_REQUEST = (
+    "search ~/Documents directory for any python file that begins with 'test'"
+)
 
 SEARCH_OUTPUT_EXAMPLE = """
     {
-        "input": "search the ~/Documents/ directory for any .py file that begins with 'test'",
+        "input": "search the ~/Documents/ directory for any python file that begins with 'test'",
         "error" : 0,
         "commands": [
             {
@@ -105,7 +105,7 @@ SEARCH_OUTPUT_EXAMPLE = """
                 "cmd_explanations": ["`find` is used to list files."],
                 "arg_explanations": {
                                         "~/Documents": "specifies the folder to search in.",
-                                        "-name 'test*.py'": "specifies that we want to search for files starting with `test` and ending with `.py`."
+                                        "-name 'test*.py'": "specifies that we want to search for files starting with `test` that are python files."
                                     }
             }
         ]
@@ -118,20 +118,12 @@ SEARCH_OUTPUT_EXAMPLE_FAST = """
     }
     """
 
-SEARCH_OUTPUT_EXAMPLE_MARKDOWN = """
-`find ~/Documents/ -name 'test*.py'`\n
-"""
-
 PROCESS_REQUEST = "list all processes using more than 50 MB of memory"
 
 PROCESS_OUTPUT_EXAMPLE_FAST = """
 {
 "commands": ["ps -axm -o %mem,rss,comm | awk '$1 > 0.5 { printf(\\"%.0fMB\\\\t%s\\\\n\\", $2/1024, $3); }'"]
 }
-"""
-
-PROCESS_OUTPUT_EXAMPLE_MARKDOWN = """
-`ps -axm -o %mem,rss,comm | awk '$1 > 0.5 { printf(\\"%.0fMB\\\\t%s\\\\n\\", $2/1024, $3); }'`\n
 """
 
 UNKNOWN_REQUEST = "the quick brown fox jumped over"

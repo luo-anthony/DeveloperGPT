@@ -13,7 +13,7 @@ from prompt_toolkit.keys import Keys
 from prompt_toolkit.styles import Style
 from rich.console import Console
 
-# appearance constants
+### Appearance Constants ###
 DEFAULT_COLUMN_WIDTH = 100
 
 INPUT_STYLE = Style.from_dict(
@@ -22,10 +22,9 @@ INPUT_STYLE = Style.from_dict(
     }
 )
 
-# supported models
+### Supported LLMs and Configuration ###
 GPT35 = "gpt35"
 GPT4 = "gpt4"
-OPENCHAT = "openchat"
 ZEPHYR = "zephyr"
 GEMMA = "gemma"
 GEMMA_BASE = "gemma-base"
@@ -39,7 +38,6 @@ SUPPORTED_MODELS = set(
         GPT35,
         GPT4,
         GEMINI,
-        OPENCHAT,
         ZEPHYR,
         MISTRAL_Q6,
         MISTRAL_Q4,
@@ -71,23 +69,29 @@ OPENAI_MODEL_MAP = {
 }
 
 HF_MODEL_MAP = {
-    OPENCHAT: "openchat/openchat-3.5-0106",
     ZEPHYR: "HuggingFaceH4/zephyr-7b-beta",
-    GEMMA: "google/gemma-7b-it",
+    GEMMA: "google/gemma-1.1-7b-it",
     GEMMA_BASE: "google/gemma-7b",
     MISTRAL_HF: "mistralai/Mistral-7B-Instruct-v0.2",
     BLOOM: "bigscience/bloom",
 }
 
-HF_INSTRUCT_MODELS = set([GEMMA, ZEPHYR, OPENCHAT, MISTRAL_HF])
+HF_INSTRUCT_MODELS = set([GEMMA, ZEPHYR, MISTRAL_HF])
+
+# set of models that support the new chat completion endpoint
+HF_CHAT_COMPLETION_MODELS = set([ZEPHYR])
 
 GOOGLE_MODEL_MAP = {
     GEMINI: "gemini-1.0-pro",
 }
 
+### API Key Constants ###
+
 GOOGLE_API_KEY = "GOOGLE_API_KEY"
 OPEN_AI_API_KEY = "OPENAI_API_KEY"
 HUGGING_FACE_API_KEY = "HUGGING_FACE_API_KEY"
+
+### General Configuration ###
 
 USER_PLATFORM = platform.platform()
 CMD_TEMP = 0.01

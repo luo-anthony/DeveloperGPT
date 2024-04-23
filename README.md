@@ -1,10 +1,9 @@
 # DeveloperGPT
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
-[![LLMs](https://img.shields.io/badge/Supported%20LLMs-Gemini,%20Mistral7B,%20Gemma,%20GPT3.5,%20GPT4,%20OpenChat,%20Zephyr-blue)](https://img.shields.io/badge/Supported%20LLMs-Gemini,%20Mistral7B,%20Gemma,%20GPT3.5,%20GPT4,%20OpenChat,%20Zephyr-blue)
+[![LLMs](https://img.shields.io/badge/Supported%20LLMs-Gemini,%20Mistral7B,%20Gemma,%20GPT3.5,%20GPT4,%20Zephyr-blue)](https://img.shields.io/badge/Supported%20LLMs-Gemini,%20Mistral7B,%20Gemma,%20GPT3.5,%20GPT4,%20Zephyr-blue)
 [![PyPI](https://img.shields.io/pypi/v/developergpt)](https://pypi.org/project/developergpt/)
-[![OpenAI GPTs](https://img.shields.io/badge/OpenAI%20GPTs-Try%20the%20online%20DeveloperGPT-8A2BE2)](https://chat.openai.com/g/g-mfPPe6MKC-developergpt)
 
-DeveloperGPT is a LLM-powered command line tool that enables natural language to terminal commands and in-terminal chat. DeveloperGPT is powered by Google Gemini Pro by default but also supports OpenAI GPT LLMs, open-source LLMs from Hugging Face, and offline quantized on-device LLMs.
+DeveloperGPT is a LLM-powered command line tool that enables natural language to terminal commands and in-terminal chat. DeveloperGPT is powered by Google Gemini Pro by default but also supports OpenAI GPT LLMs, open-source LLMs hosted on Hugging Face, and offline quantized on-device LLMs.
 
 As of April 2024, DeveloperGPT is completely free to use when using Google Gemini Pro 1.0 at up to 15 requests per minute - this is the default model used by DeveloperGPT in the latest version. 
 
@@ -12,15 +11,14 @@ Additionally, DeveloperGPT supports [quantized Mistral-7B-Instruct](https://hugg
 
 #### Supported LLMs
 Switch between different LLMs using the `--model` flag: `developergpt --model [model_name] [cmd, chat]`
-| Model(s)                   | Source                                                                                                            | Details                                                  |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| **Gemini** (default)       | [Google AI (Gemini Pro 1.0)](https://deepmind.google/technologies/gemini/)                                        | Free (up to 15 requests/min), Google AI API Key Required |
-| **Mistral**                | [Mistral-7B-Instruct](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2)                                  | Free, Open-Source, Hugging Face Inference API            |
-| **GPT35, GPT4**            | [OpenAI](https://platform.openai.com/docs/models)                                                                 | Pay-Per-Usage, OpenAI API Key Required                   |
-| **Zephyr**                 | [Zephyr (7B-Beta)](https://huggingface.co/HuggingFaceH4/zephyr-7b-beta)                                           | Free, Open-Source, Hugging Face Inference API            |
-| **OpenChat**               | [OpenChat (3.5-0106)](https://huggingface.co/openchat/openchat-3.5-0106)                                          | Free, Open-Source, Hugging Face Inference API            |
-| **Gemma, Gemma-Base**      | [Gemma-Instruct](https://huggingface.co/google/gemma-7b), [Gemma-Base](https://huggingface.co/google/gemma-7b-it) | Free, Open-Source, Hugging Face Inference API            |
-| **Mistral-Q6, Mistral-Q4** | [Quantized GGUF Mistral-7B-Instruct](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF)               | Free, Open-Source, OFFLINE, ON-DEVICE                    |
+| Model(s)                          | Source                                                                                                                       | Details                                                  |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| **Gemini** (default)              | [Google AI (Gemini Pro 1.0)](https://deepmind.google/technologies/gemini/)                                                   | Free (up to 15 requests/min), Google AI API Key Required |
+| **GPT35, GPT4**                   | [OpenAI](https://platform.openai.com/docs/models)                                                                            | Pay-Per-Usage, OpenAI API Key Required                   |
+| **Zephyr**                        | [Zephyr7B-Beta](https://huggingface.co/HuggingFaceH4/zephyr-7b-beta)                                                         | Free, Open-Source, Hugging Face Inference API            |
+| **Gemma, Gemma-Base**             | [Gemma-1.1-7B-Instruct](https://huggingface.co/google/gemma-1.1-7b-it), [Gemma-Base](https://huggingface.co/google/gemma-7b) | Free, Open-Source, Hugging Face Inference API            |
+| **Mistral-Q6, Mistral-Q4**        | [Quantized GGUF Mistral-7B-Instruct](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF)                          | Free, Open-Source, OFFLINE, ON-DEVICE                    |
+| **Mistral** [current not working] | [Mistral-7B-Instruct](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2)                                             | Free, Open-Source, Hugging Face Inference API            |
 
 - `mistral-q6` and `mistral-q4` are [Quantized GGUF Mistral-7B-Instruct](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF) LLMs running locally on-device using llama.cpp (Q6_K quantized and Q4_K quantized models respectively)
 
@@ -48,7 +46,7 @@ Use `developergpt --offline cmd` to use quantized Mistral-7B-Instruct running lo
 $ developergpt --offline cmd [your natural language command request]
 ```
 
-Use `developergpt --model [model_name] cmd` to use a different LLM instead of Gemini (used by default).  
+Use `developergpt --model [model_name] cmd` to use a different LLM instead of Gemini Pro (used by default).  
 ```bash
 # Example: Natural Language to Terminal Commands using the GPT3.5 instead of Gemini
 $ developergpt --model gpt35 cmd [your natural language command request]
@@ -121,8 +119,9 @@ $ echo 'export OPENAI_API_KEY=[your_key_here]' >> ~/.zshenv
 $ source ~/.zshenv
 ```
 
-#### Using Open-Source Hugging-Face Inference API LLMs
-To use open-source LLMs such as Zephyr or OpenChat hosted on Hugging Face, you can optionally set up a [Hugging Face](https://huggingface.co/settings/tokens) or [Inference API](https://huggingface.co/docs/api-inference/index) token as an environment variable using the steps below. Setting up a token is **not required**, but it will allow you to make more requests without being rate limited. 
+#### Using Open-Source Hugging Face Inference API LLMs
+To use open-source LLMs such as Gemma or Mistral hosted on Hugging Face, you can optionally set up a [Hugging Face Inference API](https://huggingface.co/settings/tokens) token as an environment variable using the steps below. 
+See https://huggingface.co/docs/api-inference/index for more details. 
 
 ```bash
 # [OPTIONAL] set Hugging Face token (using zsh for example)
@@ -143,12 +142,13 @@ As of April 2024, Google Gemini is free to use up to 15 queries per minute. For 
 #### OpenAI GPT
 You can monitor your OpenAI API usage here: https://platform.openai.com/account/usage. Based on preliminary testing, using DeveloperGPT with GPT3.5 should cost less than 10 cents per day with regular usage. Using GPT4 is not recommended as GPT3.5 is much more cost-effective and achieves a very high accuracy for most commands. 
 
-#### Hugging-Face Open-Source LLMs 
-As of December 2023, using Hugging Face LLMs does not require a token and is free but rate limited. To avoid rate limit, you can set a token using the instructions above. 
+#### Hugging Face Hosted Open LLMs 
+As of April 2024, using Hugging Face Inference API hosted LLMs is free but rate limited. See https://huggingface.co/docs/api-inference/index for more details. 
 
 ## Contributing
 Read the [CONTRIBUTING.md](CONTRIBUTING.md) file.
 
 ## Credit
-- Thanks to Hugging Face and the NLP/LLM community for open-source LLMs, tools, quantization, and other resources! 
+- Thanks to Hugging Face and the NLP/LLM community for open-source LLMs, generous free hosted inference API, tools, quantization, and other resources! 
+- Thanks to Google for the generous Gemini Pro API free tier. 
 - This project uses the Python project template from https://github.com/rochacbruno/python-project-template

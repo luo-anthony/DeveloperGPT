@@ -119,7 +119,18 @@ def get_model_chat_response(
     chat_session: "ChatSession",
     temperature: float,
 ) -> None:
-    """Get the response from the model."""
+    """
+    Get the chat response from Gemini model.
+
+    Args:
+        user_input (str): The user's input message.
+        console (Console): The console object for displaying the output.
+        chat_session (ChatSession): The chat session object.
+        temperature (float): The temperature value for generating the response.
+
+    Returns:
+        None
+    """
     response = chat_session.send_message(
         user_input,
         stream=True,
@@ -145,7 +156,19 @@ def get_model_chat_response(
 
 def model_command(
     *, user_input: str, console: Console, fast_mode: bool, model: str
-) -> Optional[str]:
+) -> str:
+    """
+    Get model command suggestion.
+
+    Args:
+        user_input (str): The user natural language command request.
+        console (Console): The console object for displaying status messages.
+        fast_mode (bool): Flag indicating whether to use fast mode or not.
+        model (str): The model to use for generating the response.
+
+    Returns:
+        str: The generated response as a string, or None if no response is generated.
+    """
     gemini_model = GenerativeModel(config.GOOGLE_MODEL_MAP[model])
 
     if fast_mode:

@@ -111,7 +111,7 @@ def main(ctx, temperature: float, model: str, offline: bool):
             config.HUGGING_FACE_API_KEY, console
         )
         console.print(
-            f"[bold yellow]Using {config.HF_MODEL_MAP[model]} via HF: some features may have unexpected behavior and results may not be as accurate."
+            f"[bold yellow]Using {config.HF_MODEL_MAP[model]} via Hugging Face Inference API."
         )
     elif model in config.GOOGLE_MODEL_MAP:
         api_key = config.get_environ_key(config.GOOGLE_API_KEY, console)
@@ -127,6 +127,9 @@ def main(ctx, temperature: float, model: str, offline: bool):
 @click.pass_context
 @click.argument("user_input", nargs=-1)
 def chat(ctx, user_input):
+    """
+    Chat with LLMs in Terminal
+    """
     if user_input:
         user_input = str(" ".join(user_input))
         session.history.append_string(user_input)
@@ -200,6 +203,9 @@ def chat(ctx, user_input):
 )
 @click.pass_context
 def cmd(ctx, user_input, fast):
+    """
+    Natural Language to Terminal Commands
+    """
     input_request = "\nDesired Command Request: "
 
     if user_input:
@@ -255,7 +261,7 @@ def cmd(ctx, user_input, fast):
 
         user_input = None  # clear input for next iteration
 
-        commands = utils.print_command_response(model_output, console, fast, model)
+        commands = utils.print_command_response(model_output, console, fast)
         if not commands:
             continue
 
