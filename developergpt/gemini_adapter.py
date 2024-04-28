@@ -2,7 +2,7 @@
 DeveloperGPT by luo-anthony
 """
 
-from typing import Optional
+import json
 
 import google.generativeai as genai
 from google.generativeai import ChatSession, GenerativeModel
@@ -111,6 +111,9 @@ BASE_INPUT_CMD_MSGS_FAST = [
     ),
 ]
 
+# nescessary otherwise Gemini thinks a request like "kill a process with pid=1234" is dangerous
+GEMINI_SAFETY_SETTING = {"HARM_CATEGORY_DANGEROUS": "BLOCK_NONE"}
+
 
 def get_model_chat_response(
     *,
@@ -182,5 +185,26 @@ def model_command(
         response = gemini_model.generate_content(
             contents=input_messages,
             generation_config=genai.types.GenerationConfig(temperature=config.CMD_TEMP),
+            safety_settings=GEMINI_SAFETY_SETTING,
         )
-    return utils.clean_model_output(response.text)
+        raw_output = utils.clean_model_output(response.text)
+        try:
+            _ = json.loads(raw_output)
+            # valid JSON -> return the cleaned output
+            return raw_output
+        except json.decoder.JSONDecodeError as e:
+            # invalid JSON -> ask model to fix JSON
+            fix_json_request = {
+                "role": "user",
+                "parts": [
+                    f"The following JSON cannot be parsed ({e}). Please fix any errors in the JSON and return it (only return the fixed JSON itself). The output should only be a single valid JSON block:\n {raw_output}"
+                ],
+            }
+            response_2 = gemini_model.generate_content(
+                contents=[fix_json_request],
+                generation_config=genai.types.GenerationConfig(
+                    temperature=config.CMD_TEMP
+                ),
+                safety_settings=GEMINI_SAFETY_SETTING,
+            )
+            return utils.clean_model_output(response_2.text)

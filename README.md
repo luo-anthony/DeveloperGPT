@@ -18,7 +18,7 @@ Switch between different LLMs using the `--model` flag: `developergpt --model [m
 | **Zephyr**                        | [Zephyr7B-Beta](https://huggingface.co/HuggingFaceH4/zephyr-7b-beta)                                                         | Free, Open-Source, Hugging Face Inference API            |
 | **Gemma, Gemma-Base**             | [Gemma-1.1-7B-Instruct](https://huggingface.co/google/gemma-1.1-7b-it), [Gemma-Base](https://huggingface.co/google/gemma-7b) | Free, Open-Source, Hugging Face Inference API            |
 | **Mistral-Q6, Mistral-Q4**        | [Quantized GGUF Mistral-7B-Instruct](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF)                          | Free, Open-Source, OFFLINE, ON-DEVICE                    |
-| **Mistral** [current not working] | [Mistral-7B-Instruct](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2)                                             | Free, Open-Source, Hugging Face Inference API            |
+| **Mistral**                       | [Mistral-7B-Instruct](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2)                                             | Free, Open-Source, Hugging Face Inference API            |
 
 - `mistral-q6` and `mistral-q4` are [Quantized GGUF Mistral-7B-Instruct](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF) LLMs running locally on-device using llama.cpp (Q6_K quantized and Q4_K quantized models respectively)
 
