@@ -8,7 +8,7 @@ JSON_CMD_FORMAT = """
         {
             "seq": <Order of Command>,
             "cmd_to_execute": "<commands and arguments to execute>",
-            "cmd_explanations": ["<explanation of command 1>", "<explantion of command 2>", ...],
+            "cmd_explanations": ["<explanation of command 1>", "<explanation of command 2>", ...],
             "arg_explanations": {"<arg1>": "<explanation of arg1>", "<arg2>": "<explanation of argument 2>", ...}
         },
         {

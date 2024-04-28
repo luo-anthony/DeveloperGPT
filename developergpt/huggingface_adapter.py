@@ -2,6 +2,7 @@
 DeveloperGPT by luo-anthony
 """
 
+import json
 import re
 import sys
 from typing import Optional
@@ -216,7 +217,6 @@ def _instruct_model_command(
                 temperature=config.CMD_TEMP,
             )
             raw_output = response.choices[0].message.content
-            return raw_output
         else:
             if fast_mode:
                 model_input = (
@@ -234,12 +234,32 @@ def _instruct_model_command(
                     + "\n".join(HF_EXAMPLE_CMDS + [format_user_cmd_request(user_input)])
                     + "\nAssistant:"
                 )
-            return client.text_generation(
+            raw_output = client.text_generation(
                 model_input,
                 max_new_tokens=MAX_RESPONSE_TOKENS,
                 temperature=config.CMD_TEMP,
                 stop_sequences=["User:"],
             )
+        raw_output = utils.clean_model_output(raw_output)
+        try:
+            _ = json.loads(raw_output)
+            # valid JSON -> return the cleaned output
+            return raw_output
+        except json.decoder.JSONDecodeError as e:
+            # invalid JSON -> ask model to extract and fix the JSON
+            extract_json_request = f"""
+The following JSON cannot be parsed ({e}).
+Please fix any errors in the JSON and return it (only return the fixed JSON itself).
+The output should only be a single valid JSON block:\n
+{raw_output}
+            """
+            second_attempt = client.text_generation(
+                extract_json_request,
+                max_new_tokens=MAX_RESPONSE_TOKENS,
+                temperature=config.CMD_TEMP,
+                stop_sequences=["User:"],
+            )
+            return second_attempt
 
 
 def _foundation_model_command(

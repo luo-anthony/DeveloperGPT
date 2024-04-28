@@ -65,7 +65,7 @@ LLAMA_CPP_MODEL_MAP = {
 
 OPENAI_MODEL_MAP = {
     GPT35: "gpt-3.5-turbo",
-    GPT4: "gpt-4-turbo-preview",
+    GPT4: "gpt-4-turbo",
 }
 
 HF_MODEL_MAP = {
