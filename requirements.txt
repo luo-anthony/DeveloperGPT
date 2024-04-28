@@ -12,3 +12,4 @@ requests
 llama-cpp-python
 huggingface-hub >= 0.22.2
 minijinja 
+anthropic >= 0.23.0

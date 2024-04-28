@@ -5,12 +5,12 @@ DeveloperGPT by luo-anthony
 import os
 import subprocess
 import sys
-from functools import wraps
 from typing import Optional
 
 import click
 import google.generativeai as genai
 import inquirer
+from anthropic import Anthropic
 from google.generativeai import GenerativeModel
 from llama_cpp import Llama
 from openai import OpenAI
@@ -20,6 +20,7 @@ from prompt_toolkit.shortcuts import CompleteStyle
 from rich.console import Console
 
 from developergpt import (
+    anthropic_adapter,
     config,
     gemini_adapter,
     huggingface_adapter,
@@ -40,7 +41,7 @@ session: PromptSession = PromptSession()
 @click.option(
     "--model",
     default="gemini",
-    help=f"The LLM to use. Options: f{', '.join(config.SUPPORTED_MODELS)}",
+    help=f"The LLM to use. Options: {', '.join(config.SUPPORTED_MODELS)}",
 )
 @click.option(
     "--offline",
@@ -69,7 +70,7 @@ def main(ctx, temperature: float, model: str, offline: bool):
         sys.exit(-1)
 
     ctx.ensure_object(dict)
-    client: Optional[OpenAI | Llama] = None
+    client: Optional[OpenAI | Llama | Anthropic] = None
     if offline or model in config.OFFLINE_MODELS:
         console.print(
             f"""[bold yellow]Using quantized {' '.join(config.LLAMA_CPP_MODEL_MAP[model])} running on-device (offline)."""
@@ -116,6 +117,9 @@ def main(ctx, temperature: float, model: str, offline: bool):
     elif model in config.GOOGLE_MODEL_MAP:
         api_key = config.get_environ_key(config.GOOGLE_API_KEY, console)
         genai.configure(api_key=api_key)
+    elif model in config.ANTHROPIC_MODEL_MAP:
+        api_key = config.get_environ_key(config.ANTHROPIC_API_KEY, console)
+        client = Anthropic(api_key=api_key)
 
     ctx.obj["temperature"] = temperature
     ctx.obj["model"] = model
@@ -148,6 +152,8 @@ def chat(ctx, user_input):
     elif model in config.GOOGLE_MODEL_MAP:
         gemini_model = GenerativeModel(config.GOOGLE_MODEL_MAP[model])
         chat_session = gemini_model.start_chat()
+    elif model in config.ANTHROPIC_MODEL_MAP:
+        input_messages = []
     else:
         return
 
@@ -189,17 +195,27 @@ def chat(ctx, user_input):
                 chat_session=chat_session,
                 temperature=ctx.obj["temperature"],
             )
+        elif model in config.ANTHROPIC_MODEL_MAP:
+            client = ctx.obj["client"]
+            input_messages = anthropic_adapter.get_model_chat_response(
+                user_input=user_input,
+                console=console,
+                input_messages=input_messages,
+                temperature=ctx.obj["temperature"],
+                model=model,
+                client=client,
+            )
 
         user_input = None
 
 
-@main.command(help="Execute commands using natural language")
+@main.command(help="Natural language to terminal commands")
 @click.argument("user_input", nargs=-1)
 @click.option(
     "--fast",
     is_flag=True,
     default=False,
-    help="Get commands without command or argument explanations (less accurate)",
+    help="Get commands without explanations (may be less accurate)",
 )
 @click.pass_context
 def cmd(ctx, user_input, fast):
@@ -257,6 +273,14 @@ def cmd(ctx, user_input, fast):
                 console=console,
                 fast_mode=fast,
                 model=model,
+            )
+        elif model in config.ANTHROPIC_MODEL_MAP:
+            model_output = anthropic_adapter.model_command(
+                user_input=user_input,
+                console=console,
+                fast_mode=fast,
+                model=model,
+                client=ctx.obj["client"],
             )
 
         user_input = None  # clear input for next iteration

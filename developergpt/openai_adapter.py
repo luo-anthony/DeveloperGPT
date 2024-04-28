@@ -16,28 +16,20 @@ from rich.panel import Panel
 
 from developergpt import config, few_shot_prompts, utils
 from developergpt.few_shot_prompts import (
+    CHAT_SYS_MSG,
+    CMD_SYS_MSG,
     INITIAL_USER_CMD_MSG,
     INITIAL_USER_CMD_MSG_FAST,
 )
 
 INITIAL_CHAT_SYSTEM_MSG = {
     "role": "system",
-    "content": f"""
-                You are DeveloperGPT, a helpful personal assistant for a programmer working on a {config.USER_PLATFORM} machine. 
-                Your task is to assist the programmer with any programming-related tasks they may have. 
-                This could include providing advice on how to approach a programming problem, suggesting tools or libraries to use for a particular task, 
-                helping to troubleshoot errors or bugs in code, answering general programming questions, and providing code snippets or examples.
-
-                Please keep your answers short and concise and use a suitable format for printing on the terminal. 
-                If you provide code snippets, use ```<language> to specify the language. 
-            """,
+    "content": CHAT_SYS_MSG,
 }
 
 INITIAL_CMD_SYSTEM_MSG = {
     "role": "system",
-    "content": f"""
-            As an assistant for a programmer on a {config.USER_PLATFORM} machine, your task is to provide the appropriate command-line commands to execute a user request.
-            """,
+    "content": CMD_SYS_MSG,
 }
 
 

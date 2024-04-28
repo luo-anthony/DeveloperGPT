@@ -1,6 +1,6 @@
 # DeveloperGPT
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
-[![LLMs](https://img.shields.io/badge/Supported%20LLMs-Gemini,%20Mistral7B,%20Gemma,%20GPT3.5,%20GPT4,%20Zephyr-blue)](https://img.shields.io/badge/Supported%20LLMs-Gemini,%20Mistral7B,%20Gemma,%20GPT3.5,%20GPT4,%20Zephyr-blue)
+[![LLMs](https://img.shields.io/badge/Supported%20LLMs-Gemini,%20Mistral7B,%20Gemma,%20GPT3.5,%20GPT4,%20Zephyr,%20Claude-blue)](https://img.shields.io/badge/Supported%20LLMs-Gemini,%20Mistral7B,%20Gemma,%20GPT3.5,%20GPT4,%20Zephyr,%20Claude-blue)
 [![PyPI](https://img.shields.io/pypi/v/developergpt)](https://pypi.org/project/developergpt/)
 
 DeveloperGPT is a LLM-powered command line tool that enables natural language to terminal commands and in-terminal chat. DeveloperGPT is powered by Google Gemini Pro by default but also supports OpenAI GPT LLMs, open LLMs hosted on Hugging Face, and offline quantized on-device LLMs.
@@ -15,6 +15,7 @@ Switch between different LLMs using the `--model` flag: `developergpt --model [m
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | **Gemini** (default)       | [Google AI (Gemini Pro 1.0)](https://deepmind.google/technologies/gemini/)                                                   | Free (up to 15 requests/min), Google AI API Key Required |
 | **GPT35, GPT4**            | [OpenAI](https://platform.openai.com/docs/models)                                                                            | Pay-Per-Usage, OpenAI API Key Required                   |
+| **Haiku, Sonnet**          | [Anthropic (Claude 3)](https://docs.anthropic.com/claude/docs/models-overview)                                               | Pay-Per-Usage, Anthropic API Key Required                |
 | **Zephyr**                 | [Zephyr7B-Beta](https://huggingface.co/HuggingFaceH4/zephyr-7b-beta)                                                         | Free, Open LLM, Hugging Face Inference API               |
 | **Gemma, Gemma-Base**      | [Gemma-1.1-7B-Instruct](https://huggingface.co/google/gemma-1.1-7b-it), [Gemma-Base](https://huggingface.co/google/gemma-7b) | Free, Open LLM, Hugging Face Inference API               |
 | **Mistral-Q6, Mistral-Q4** | [Quantized GGUF Mistral-7B-Instruct](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF)                          | Free, Open LLM, OFFLINE, ON-DEVICE                       |
@@ -100,6 +101,18 @@ $ echo 'export GOOGLE_API_KEY=[your_key_here]' >> ~/.zshenv
 $ source ~/.zshenv
 ```
 
+#### Using Hugging Face Inference API Open LLMs
+To use open LLMs such as Gemma or Mistral hosted on Hugging Face, you can optionally set up a [Hugging Face Inference API](https://huggingface.co/settings/tokens) token as an environment variable using the steps below. 
+See https://huggingface.co/docs/api-inference/index for more details. 
+
+```bash
+# [OPTIONAL] set Hugging Face token (using zsh for example)
+$ echo 'export HUGGING_FACE_API_KEY=[your_key_here]' >> ~/.zshenv
+
+# reload the environment (or just quit and open a new terminal)
+$ source ~/.zshenv
+```
+
 #### Using Mistral-7B-Instruct (Offline)
 To use Mistral-7B-Instruct, just run DeveloperGPT with the `--offline` flag. This will download the model on first run and use it locally in any future runs (no internet connection is required after the first use). No special setup is required. 
 ```bash
@@ -119,31 +132,35 @@ $ echo 'export OPENAI_API_KEY=[your_key_here]' >> ~/.zshenv
 $ source ~/.zshenv
 ```
 
-#### Using Hugging Face Inference API Open LLMs
-To use open LLMs such as Gemma or Mistral hosted on Hugging Face, you can optionally set up a [Hugging Face Inference API](https://huggingface.co/settings/tokens) token as an environment variable using the steps below. 
-See https://huggingface.co/docs/api-inference/index for more details. 
+#### Using Anthropic LLMs
+To use Anthropic Claude LLMs, you will need an Anthropic API key.
 
+1. Get your own Anthropic API Key: https://www.anthropic.com/api
+2. Set your Anthropic API Key as an environment variable. You only need to do this once. 
 ```bash
-# [OPTIONAL] set Hugging Face token (using zsh for example)
-# You only need to do this once
-$ echo 'export HUGGING_FACE_API_KEY=[your_key_here]' >> ~/.zshenv
+# set Anthropic API Key (using zsh for example)
+$ echo 'export ANTHROPIC_API_KEY=[your_key_here]' >> ~/.zshenv
 
 # reload the environment (or just quit and open a new terminal)
 $ source ~/.zshenv
 ```
 
-### Usage and Cost 
-#### Mistral-7B-Instruct (llama.cpp)
-Mistral-7B-Instruct is free to use and runs locally on-device.
 
+### Usage and Cost 
 #### Google Gemini
 As of May 2024, Google Gemini is free to use up to 15 queries per minute. For more information, see: https://ai.google.dev/pricing
+
+#### Hugging Face Hosted Open LLMs 
+As of April 2024, using Hugging Face Inference API hosted LLMs is free but rate limited. See https://huggingface.co/docs/api-inference/index for more details.
+
+#### Mistral-7B-Instruct (llama.cpp)
+Mistral-7B-Instruct is free to use and runs locally on-device.
 
 #### OpenAI GPT
 You can monitor your OpenAI API usage here: https://platform.openai.com/account/usage. Based on preliminary testing, using DeveloperGPT with GPT3.5 should cost less than 10 cents per day with regular usage. Using GPT4 is not recommended as GPT3.5 is much more cost-effective and achieves a very high accuracy for most commands. 
 
-#### Hugging Face Hosted Open LLMs 
-As of April 2024, using Hugging Face Inference API hosted LLMs is free but rate limited. See https://huggingface.co/docs/api-inference/index for more details. 
+#### Anthropic Claude LLMs
+You can monitor your Anthropic API usage here: https://console.anthropic.com/settings/plans. Based on preliminary testing, using DeveloperGPT with Claude Haiku should cost less than 10 cents per day with regular usage. See https://www.anthropic.com/api for pricing details. 
 
 ## Contributing
 Read the [CONTRIBUTING.md](CONTRIBUTING.md) file.
