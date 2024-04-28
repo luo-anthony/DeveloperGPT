@@ -32,6 +32,8 @@ GEMINI = "gemini"
 MISTRAL_Q6 = "mistral-q6"
 MISTRAL_Q4 = "mistral-q4"
 MISTRAL_HF = "mistral"
+SONNET = "sonnet"
+HAIKU = "haiku"
 BLOOM = "bloom"  # not supported due to poor performance
 SUPPORTED_MODELS = set(
     [
@@ -44,6 +46,8 @@ SUPPORTED_MODELS = set(
         MISTRAL_HF,
         GEMMA,
         GEMMA_BASE,
+        SONNET,
+        HAIKU,
     ]
 )
 OFFLINE_MODEL_CTX = 4000
@@ -68,6 +72,11 @@ OPENAI_MODEL_MAP = {
     GPT4: "gpt-4-turbo",
 }
 
+ANTHROPIC_MODEL_MAP = {
+    SONNET: "claude-3-sonnet-20240229",
+    HAIKU: "claude-3-haiku-20240307",
+}
+
 HF_MODEL_MAP = {
     ZEPHYR: "HuggingFaceH4/zephyr-7b-beta",
     GEMMA: "google/gemma-1.1-7b-it",
@@ -90,6 +99,7 @@ GOOGLE_MODEL_MAP = {
 GOOGLE_API_KEY = "GOOGLE_API_KEY"
 OPEN_AI_API_KEY = "OPENAI_API_KEY"
 HUGGING_FACE_API_KEY = "HUGGING_FACE_API_KEY"
+ANTHROPIC_API_KEY = "ANTHROPIC_API_KEY"
 
 ### General Configuration ###
 
