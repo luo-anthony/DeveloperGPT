@@ -111,8 +111,12 @@ BASE_INPUT_CMD_MSGS_FAST = [
     ),
 ]
 
-# nescessary otherwise Gemini thinks a request like "kill a process with pid=1234" is dangerous
-GEMINI_SAFETY_SETTING = {"HARM_CATEGORY_DANGEROUS": "BLOCK_NONE"}
+# nescessary otherwise Gemini thinks a request like "kill all Python processes" is dangerous
+GEMINI_SAFETY_SETTING = {
+    "HARM_CATEGORY_DANGEROUS": "BLOCK_NONE",
+    "HARM_CATEGORY_DANGEROUS_CONTENT": "BLOCK_NONE",
+    "HARM_CATEGORY_HARASSMENT": "BLOCK_NONE",
+}
 
 
 def get_model_chat_response(
