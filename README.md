@@ -10,7 +10,7 @@ As of May 2024, DeveloperGPT is completely free to use when using Google Gemini 
 Additionally, DeveloperGPT supports [quantized Mistral-7B-Instruct](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF) LLMs via llama.cpp for fully offline on-device use (these LLMs can run on machines without a dedicated GPU - see [llama.cpp](https://github.com/ggerganov/llama.cpp) for more details).
 
 #### Supported LLMs
-Switch between different LLMs using the `--model` flag: `developergpt --model [model_name] [cmd, chat]`
+Switch between different LLMs using the `--model` flag: `developergpt --model [llm_name] [cmd, chat]`
 | Model(s)                   | Source                                                                                                                       | Details                                                  |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | **Gemini** (default)       | [Google AI (Gemini Pro 1.0)](https://deepmind.google/technologies/gemini/)                                                   | Free (up to 15 requests/min), Google AI API Key Required |
