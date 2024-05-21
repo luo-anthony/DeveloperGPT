@@ -5,7 +5,7 @@
 
 DeveloperGPT is a LLM-powered command line tool that enables natural language to terminal commands and in-terminal chat. DeveloperGPT is powered by Google Gemini 1.0 Pro by default but also supports OpenAI GPT LLMs, Anthropic Claude 3 LLMs, open LLMs hosted on Hugging Face, and offline quantized on-device LLMs.
 
-As of May 2024, DeveloperGPT is completely free to use when using Google Gemini 1.0 Pro (used by default) or Google Gemini 1.0 Flash at up to 15 requests per minute.
+As of May 2024, DeveloperGPT is completely free to use when using Google Gemini 1.0 Pro (used by default) or Google Gemini 1.5 Flash at up to 15 requests per minute.
 
 Additionally, DeveloperGPT supports [quantized Mistral-7B-Instruct](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF) LLMs via llama.cpp for fully offline on-device use (these LLMs can run on machines without a dedicated GPU - see [llama.cpp](https://github.com/ggerganov/llama.cpp) for more details).
 
@@ -13,7 +13,7 @@ Additionally, DeveloperGPT supports [quantized Mistral-7B-Instruct](https://hugg
 Switch between different LLMs using the `--model` flag: `developergpt --model [llm_name] [cmd, chat]`
 | Model(s)                        | Source                                                                                                                       | Details                                                  |
 | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| **Gemini** (default), **Flash** | [Google Gemini 1.0 Pro, Gemini 1.0 Flash](https://deepmind.google/technologies/gemini/)                                      | Free (up to 15 requests/min), Google AI API Key Required |
+| **Gemini** (default), **Flash** | [Google Gemini 1.0 Pro, Gemini 1.5 Flash](https://deepmind.google/technologies/gemini/)                                      | Free (up to 15 requests/min), Google AI API Key Required |
 | **GPT35, GPT4**                 | [OpenAI](https://platform.openai.com/docs/models)                                                                            | Pay-Per-Usage, OpenAI API Key Required                   |
 | **Haiku, Sonnet**               | [Anthropic (Claude 3)](https://docs.anthropic.com/claude/docs/models-overview)                                               | Pay-Per-Usage, Anthropic API Key Required                |
 | **Zephyr**                      | [Zephyr7B-Beta](https://huggingface.co/HuggingFaceH4/zephyr-7b-beta)                                                         | Free, Open LLM, Hugging Face Inference API               |
