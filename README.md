@@ -3,23 +3,23 @@
 [![LLMs](https://img.shields.io/badge/Supported%20LLMs-Gemini,%20Mistral7B,%20Gemma,%20GPT3.5,%20GPT4,%20Zephyr,%20Claude-blue)](https://img.shields.io/badge/Supported%20LLMs-Gemini,%20Mistral7B,%20Gemma,%20GPT3.5,%20GPT4,%20Zephyr,%20Claude-blue)
 [![PyPI](https://img.shields.io/pypi/v/developergpt)](https://pypi.org/project/developergpt/)
 
-DeveloperGPT is a LLM-powered command line tool that enables natural language to terminal commands and in-terminal chat. DeveloperGPT is powered by Google Gemini Pro by default but also supports OpenAI GPT LLMs, open LLMs hosted on Hugging Face, and offline quantized on-device LLMs.
+DeveloperGPT is a LLM-powered command line tool that enables natural language to terminal commands and in-terminal chat. DeveloperGPT is powered by Google Gemini 1.0 Pro by default but also supports OpenAI GPT LLMs, Anthropic Claude 3 LLMs, open LLMs hosted on Hugging Face, and offline quantized on-device LLMs.
 
-As of May 2024, DeveloperGPT is completely free to use when using Google Gemini Pro 1.0 at up to 15 requests per minute - this is the default model used by DeveloperGPT in the latest version. 
+As of May 2024, DeveloperGPT is completely free to use when using Google Gemini 1.0 Pro (used by default) or Google Gemini 1.0 Flash at up to 15 requests per minute.
 
 Additionally, DeveloperGPT supports [quantized Mistral-7B-Instruct](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF) LLMs via llama.cpp for fully offline on-device use (these LLMs can run on machines without a dedicated GPU - see [llama.cpp](https://github.com/ggerganov/llama.cpp) for more details).
 
 #### Supported LLMs
 Switch between different LLMs using the `--model` flag: `developergpt --model [llm_name] [cmd, chat]`
-| Model(s)                   | Source                                                                                                                       | Details                                                  |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| **Gemini** (default)       | [Google AI (Gemini Pro 1.0)](https://deepmind.google/technologies/gemini/)                                                   | Free (up to 15 requests/min), Google AI API Key Required |
-| **GPT35, GPT4**            | [OpenAI](https://platform.openai.com/docs/models)                                                                            | Pay-Per-Usage, OpenAI API Key Required                   |
-| **Haiku, Sonnet**          | [Anthropic (Claude 3)](https://docs.anthropic.com/claude/docs/models-overview)                                               | Pay-Per-Usage, Anthropic API Key Required                |
-| **Zephyr**                 | [Zephyr7B-Beta](https://huggingface.co/HuggingFaceH4/zephyr-7b-beta)                                                         | Free, Open LLM, Hugging Face Inference API               |
-| **Gemma, Gemma-Base**      | [Gemma-1.1-7B-Instruct](https://huggingface.co/google/gemma-1.1-7b-it), [Gemma-Base](https://huggingface.co/google/gemma-7b) | Free, Open LLM, Hugging Face Inference API               |
-| **Mistral-Q6, Mistral-Q4** | [Quantized GGUF Mistral-7B-Instruct](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF)                          | Free, Open LLM, OFFLINE, ON-DEVICE                       |
-| **Mistral**                | [Mistral-7B-Instruct](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2)                                             | Free, Open LLM, Hugging Face Inference API               |
+| Model(s)                        | Source                                                                                                                       | Details                                                  |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| **Gemini** (default), **Flash** | [Google Gemini 1.0 Pro, Gemini 1.0 Flash](https://deepmind.google/technologies/gemini/)                                      | Free (up to 15 requests/min), Google AI API Key Required |
+| **GPT35, GPT4**                 | [OpenAI](https://platform.openai.com/docs/models)                                                                            | Pay-Per-Usage, OpenAI API Key Required                   |
+| **Haiku, Sonnet**               | [Anthropic (Claude 3)](https://docs.anthropic.com/claude/docs/models-overview)                                               | Pay-Per-Usage, Anthropic API Key Required                |
+| **Zephyr**                      | [Zephyr7B-Beta](https://huggingface.co/HuggingFaceH4/zephyr-7b-beta)                                                         | Free, Open LLM, Hugging Face Inference API               |
+| **Gemma, Gemma-Base**           | [Gemma-1.1-7B-Instruct](https://huggingface.co/google/gemma-1.1-7b-it), [Gemma-Base](https://huggingface.co/google/gemma-7b) | Free, Open LLM, Hugging Face Inference API               |
+| **Mistral-Q6, Mistral-Q4**      | [Quantized GGUF Mistral-7B-Instruct](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF)                          | Free, Open LLM, OFFLINE, ON-DEVICE                       |
+| **Mistral**                     | [Mistral-7B-Instruct](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2)                                             | Free, Open LLM, Hugging Face Inference API               |
 
 - `mistral-q6` and `mistral-q4` are [Quantized GGUF Mistral-7B-Instruct](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF) LLMs running locally on-device using llama.cpp (Q6_K quantized and Q4_K quantized models respectively)
 
@@ -68,7 +68,7 @@ Use `developergpt --offline chat` to use quantized Mistral-7B-Instruct running l
 Use `developergpt --model [model_name] chat` to use a different LLM instead of Gemini. 
 ```bash
 # Example
-$ developergpt --model gemma chat
+$ developergpt --model mistral chat
 ```
 
 Chat moderation is **NOT** implemented - all your chat messages should follow the terms of use of the LLM used. 
@@ -89,7 +89,7 @@ $ developergpt
 
 ### Setup
 #### Using Google Gemini (Default)
-By default, DeveloperGPT uses Google Gemini Pro 1.0. To use Gemini Pro, you will need an API key (free to use up to 15 queries per minute).
+By default, DeveloperGPT uses Google Gemini 1.0 Pro. To use Gemini 1.0 Pro or Gemini 1.5 Flash, you will need an API key (free to use up to 15 queries per minute).
 
 1. Get your own Google AI Studio API Key: https://makersuite.google.com/app/apikey
 2. Set your Google API Key as an environment variable. You only need to do this once. 
@@ -133,7 +133,7 @@ $ source ~/.zshenv
 ```
 
 #### Using Anthropic LLMs
-To use Anthropic Claude LLMs, you will need an Anthropic API key.
+To use Anthropic Claude 3 Sonnet or Haiku, you will need an Anthropic API key.
 
 1. Get your own Anthropic API Key: https://www.anthropic.com/api
 2. Set your Anthropic API Key as an environment variable. You only need to do this once. 
@@ -147,8 +147,8 @@ $ source ~/.zshenv
 
 
 ### Usage and Cost 
-#### Google Gemini
-As of May 2024, Google Gemini is free to use up to 15 queries per minute. For more information, see: https://ai.google.dev/pricing
+#### Google Gemini LLMs
+As of May 2024, Google Gemini 1.0 Pro and Gemini 1.5 Flash is free to use up to 15 queries per minute. For more information, see: https://ai.google.dev/pricing
 
 #### Hugging Face Hosted Open LLMs 
 As of April 2024, using Hugging Face Inference API hosted LLMs is free but rate limited. See https://huggingface.co/docs/api-inference/index for more details.
@@ -157,15 +157,15 @@ As of April 2024, using Hugging Face Inference API hosted LLMs is free but rate 
 Mistral-7B-Instruct is free to use and runs locally on-device.
 
 #### OpenAI GPT
-You can monitor your OpenAI API usage here: https://platform.openai.com/account/usage. Based on preliminary testing, using DeveloperGPT with GPT3.5 should cost less than 10 cents per day with regular usage. Using GPT4 is not recommended as GPT3.5 is much more cost-effective and achieves a very high accuracy for most commands. 
+You can monitor your OpenAI API usage here: https://platform.openai.com/account/usage. The average cost per query using GPT-3.5 is < 0.0001 cents. Using GPT4 is not recommended as GPT3.5 is much more cost-effective and achieves a very high accuracy for most commands. 
 
 #### Anthropic Claude LLMs
-You can monitor your Anthropic API usage here: https://console.anthropic.com/settings/plans. Based on preliminary testing, using DeveloperGPT with Claude Haiku should cost less than 10 cents per day with regular usage. See https://www.anthropic.com/api for pricing details. 
+You can monitor your Anthropic API usage here: https://console.anthropic.com/settings/plans. The average cost per query using Claude 3 Haiku is < 0.0001 cents. See https://www.anthropic.com/api for pricing details. 
 
 ## Contributing
 Read the [CONTRIBUTING.md](CONTRIBUTING.md) file.
 
 ## Credit
 - Thanks to Hugging Face and the NLP/LLM community for open LLMs, generous free hosted inference APIs, tools, quantization, and other resources! 
-- Thanks to Google for the generous Gemini Pro API free tier. 
+- Thanks to Google for the generous Gemini API free tier. 
 - This project uses the Python project template from https://github.com/rochacbruno/python-project-template
