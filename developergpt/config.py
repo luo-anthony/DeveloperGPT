@@ -29,6 +29,7 @@ ZEPHYR = "zephyr"
 GEMMA = "gemma"
 GEMMA_BASE = "gemma-base"
 GEMINI = "gemini"
+FLASH = "flash"
 MISTRAL_Q6 = "mistral-q6"
 MISTRAL_Q4 = "mistral-q4"
 MISTRAL_HF = "mistral"
@@ -40,6 +41,7 @@ SUPPORTED_MODELS = set(
         GPT35,
         GPT4,
         GEMINI,
+        FLASH,
         ZEPHYR,
         MISTRAL_Q6,
         MISTRAL_Q4,
@@ -91,7 +93,8 @@ HF_INSTRUCT_MODELS = set([GEMMA, ZEPHYR, MISTRAL_HF])
 HF_CHAT_COMPLETION_MODELS = set([ZEPHYR])
 
 GOOGLE_MODEL_MAP = {
-    GEMINI: "gemini-1.0-pro",
+    GEMINI: "models/gemini-1.0-pro-latest",
+    FLASH: "models/gemini-1.5-flash-latest",
 }
 
 ### API Key Constants ###
