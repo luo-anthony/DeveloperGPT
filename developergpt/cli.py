@@ -40,7 +40,7 @@ session: PromptSession = PromptSession()
 )
 @click.option(
     "--model",
-    default="gemini",
+    default="flash",
     help=f"The LLM to use. Options: {', '.join(config.SUPPORTED_MODELS)}",
 )
 @click.option(
