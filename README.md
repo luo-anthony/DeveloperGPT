@@ -3,11 +3,9 @@
 [![LLMs](https://img.shields.io/badge/Supported%20LLMs-Gemini,%20Mistral7B,%20Gemma,%20GPT3.5,%20GPT4,%20Zephyr,%20Claude-blue)](https://img.shields.io/badge/Supported%20LLMs-Gemini,%20Mistral7B,%20Gemma,%20GPT3.5,%20GPT4,%20Zephyr,%20Claude-blue)
 [![PyPI](https://img.shields.io/pypi/v/developergpt)](https://pypi.org/project/developergpt/)
 
-DeveloperGPT is a LLM-powered command line tool that enables natural language to terminal commands and in-terminal chat. DeveloperGPT is powered by Google Gemini 1.5 Flash by default but also supports OpenAI GPT LLMs, Anthropic Claude 3 LLMs, open LLMs hosted on Hugging Face, and offline quantized on-device LLMs.
+DeveloperGPT is a LLM-powered command line tool that enables natural language to terminal commands and in-terminal chat. DeveloperGPT is powered by Google Gemini 1.5 Flash by default but also supports Google Gemini 1.0 Pro, OpenAI GPT-3.5 & GPT-4, Anthropic Claude 3 Haiku & Sonnet, open LLMs (Zephyr, Gemma, Mistral) hosted on Hugging Face, and quantized Mistral-7B-Instruct running offline on-device.
 
 As of June 2024, DeveloperGPT is completely free to use when using Google Gemini 1.5 Pro (used by default) or Google Gemini 1.0 Pro at up to 15 requests per minute.
-
-Additionally, DeveloperGPT supports [quantized Mistral-7B-Instruct](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF) LLMs via llama.cpp for fully offline on-device use (these LLMs can run on machines without a dedicated GPU - see [llama.cpp](https://github.com/ggerganov/llama.cpp) for more details).
 
 #### Supported LLMs
 Switch between different LLMs using the `--model` flag: `developergpt --model [llm_name] [cmd, chat]`
@@ -21,7 +19,7 @@ Switch between different LLMs using the `--model` flag: `developergpt --model [l
 | **Mistral-Q6, Mistral-Q4**                 | [Quantized GGUF Mistral-7B-Instruct](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF)                          | Free, Open LLM, OFFLINE, ON-DEVICE                       |
 | **Mistral**                                | [Mistral-7B-Instruct](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2)                                             | Free, Open LLM, Hugging Face Inference API               |
 
-- `mistral-q6` and `mistral-q4` are [Quantized GGUF Mistral-7B-Instruct](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF) LLMs running locally on-device using llama.cpp (Q6_K quantized and Q4_K quantized models respectively)
+- `mistral-q6` and `mistral-q4` are [Quantized GGUF Mistral-7B-Instruct](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF) LLMs running locally on-device using llama.cpp (Q6_K quantized and Q4_K quantized models respectively). These LLMs can run on machines without a dedicated GPU - see [llama.cpp](https://github.com/ggerganov/llama.cpp) for more details. 
 
 
 ### Features 
@@ -35,7 +33,7 @@ $ developergpt cmd list all git commits that contain the word llm
 
 ![Natural Language Example 1](https://github.com/luo-anthony/DeveloperGPT/raw/main/samples/cmd_demo.gif)
 
-Use `developergpt cmd --fast` to get commands faster without any explanations (~1.6 seconds with `--fast` vs. ~3.2 seconds with regular on average). Commands given in `fast` mode may be less accurate - see [DeveloperGPT Natural Language to Terminal Command Accuracy](#developergpt-natural-language-to-terminal-command-accuracy) for more details.
+Use `developergpt cmd --fast` to get commands faster without any explanations (~1.6 seconds with `--fast` vs. ~3.2 seconds with regular on average). Commands provided by DeveloperGPT in `--fast` mode may be less accurate - see [DeveloperGPT Natural Language to Terminal Command Accuracy](#developergpt-natural-language-to-terminal-command-accuracy) for more details.
 
 ```bash
 # Fast Mode: Commands are given without explanation for faster response
@@ -90,7 +88,7 @@ Accuracy of DeveloperGPT varies depending on the LLM used as well as the mode (`
 By default, DeveloperGPT uses Google Gemini 1.5 Flash. To use Gemini 1.0 Pro or Gemini 1.5 Flash, you will need an API key (free to use up to 15 queries per minute).
 
 1. Get your own Google AI Studio API Key: https://makersuite.google.com/app/apikey
-2. Set your Google API Key as an environment variable. You only need to do this once. 
+2. Set your Google API Key as the `GOOGLE_API_KEY` environment variable. You only need to do this once. 
 ```bash
 # set Google API Key (using zsh for example)
 $ echo 'export GOOGLE_API_KEY=[your_key_here]' >> ~/.zshenv
@@ -100,19 +98,10 @@ $ source ~/.zshenv
 ```
 
 #### Using Hugging Face Inference API Open LLMs
-To use open LLMs such as Gemma or Mistral hosted on Hugging Face, you can optionally set up a [Hugging Face Inference API](https://huggingface.co/settings/tokens) token as an environment variable using the steps below. 
-See https://huggingface.co/docs/api-inference/index for more details. 
+To use open LLMs such as Gemma or Mistral hosted on Hugging Face, you can optionally set up a [Hugging Face Inference API](https://huggingface.co/settings/tokens) token as the `HUGGING_FACE_API_KEY` environment variable. See https://huggingface.co/docs/api-inference/index for more details. 
 
-```bash
-# [OPTIONAL] set Hugging Face token (using zsh for example)
-$ echo 'export HUGGING_FACE_API_KEY=[your_key_here]' >> ~/.zshenv
-
-# reload the environment (or just quit and open a new terminal)
-$ source ~/.zshenv
-```
-
-#### Using Mistral-7B-Instruct (Offline)
-To use Mistral-7B-Instruct, just run DeveloperGPT with the `--offline` flag. This will download the model on first run and use it locally in any future runs (no internet connection is required after the first use). No special setup is required. 
+#### Using Quantized Mistral-7B-Instruct Offline On-Device
+To use quantized Mistral-7B-Instruct, just run DeveloperGPT with the `--offline` flag. This will download the model on first run and use it locally in any future runs (no internet connection is required after the first use). No special setup is required. 
 ```bash
 developergpt --offline chat
 ```
@@ -121,27 +110,13 @@ developergpt --offline chat
 To use GPT-3.5 or GPT-4, you will need an OpenAI API key.
 
 1. Get your own OpenAI API Key and setup billing: https://platform.openai.com/account/api-keys
-2. Set your OpenAI API Key as an environment variable. You only need to do this once. 
-```bash
-# set OpenAI API Key (using zsh for example)
-$ echo 'export OPENAI_API_KEY=[your_key_here]' >> ~/.zshenv
-
-# reload the environment (or just quit and open a new terminal)
-$ source ~/.zshenv
-```
+2. Set your OpenAI API Key as the `OPENAI_API_KEY` environment variable. You only need to do this once. 
 
 #### Using Anthropic LLMs
 To use Anthropic Claude 3 Sonnet or Haiku, you will need an Anthropic API key.
 
 1. Get your own Anthropic API Key: https://www.anthropic.com/api
-2. Set your Anthropic API Key as an environment variable. You only need to do this once. 
-```bash
-# set Anthropic API Key (using zsh for example)
-$ echo 'export ANTHROPIC_API_KEY=[your_key_here]' >> ~/.zshenv
-
-# reload the environment (or just quit and open a new terminal)
-$ source ~/.zshenv
-```
+2. Set your Anthropic API Key as the `ANTHROPIC_API_KEY` environment variable. You only need to do this once. 
 
 
 ### LLM Cost
@@ -149,7 +124,7 @@ $ source ~/.zshenv
 As of June 2024, Google Gemini 1.0 Pro and Gemini 1.5 Flash are free to use up to 15 queries per minute. For more information, see: https://ai.google.dev/pricing
 
 #### Hugging Face Hosted Open LLMs 
-As of April 2024, using Hugging Face Inference API hosted LLMs is free but rate limited. See https://huggingface.co/docs/api-inference/index for more details.
+As of June 2024, using Hugging Face Inference API hosted LLMs is free but rate limited. See https://huggingface.co/docs/api-inference/index for more details.
 
 #### Mistral-7B-Instruct (llama.cpp)
 Mistral-7B-Instruct is free to use and runs locally on-device.
