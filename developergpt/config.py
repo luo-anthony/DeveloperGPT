@@ -25,6 +25,7 @@ INPUT_STYLE = Style.from_dict(
 ### Supported LLMs and Configuration ###
 GPT35 = "gpt35"
 GPT4 = "gpt4"
+GPT4o = "gpt4o"
 ZEPHYR = "zephyr"
 GEMMA = "gemma"
 GEMMA_BASE = "gemma-base"
@@ -40,6 +41,7 @@ SUPPORTED_MODELS = set(
     [
         GPT35,
         GPT4,
+        GPT4o,
         GEMINI,
         FLASH,
         ZEPHYR,
@@ -69,10 +71,7 @@ LLAMA_CPP_MODEL_MAP = {
     ),
 }
 
-OPENAI_MODEL_MAP = {
-    GPT35: "gpt-3.5-turbo",
-    GPT4: "gpt-4-turbo",
-}
+OPENAI_MODEL_MAP = {GPT35: "gpt-3.5-turbo", GPT4: "gpt-4-turbo", GPT4o: "gpt-4o"}
 
 ANTHROPIC_MODEL_MAP = {
     SONNET: "claude-3-sonnet-20240229",
