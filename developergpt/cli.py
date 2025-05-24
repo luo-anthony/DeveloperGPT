@@ -51,7 +51,7 @@ session: PromptSession = PromptSession()
 )
 @click.pass_context
 def main(ctx, temperature: float, model: str, offline: bool):
-    model = model.lower().strip().replace(".", "")
+    model = model.lower().strip()
     if offline and model not in config.OFFLINE_MODELS:
         model = config.MISTRAL_Q6  # default to mistral 6 bit quantization if offline
 

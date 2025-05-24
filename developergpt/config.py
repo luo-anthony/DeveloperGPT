@@ -25,23 +25,31 @@ INPUT_STYLE = Style.from_dict(
 ### Supported LLMs and Configuration ###
 GPT35 = "gpt35"
 GPT4 = "gpt4"
+GPT4_NANO = "gpt4-nano"
+GPT4_MINI = "gpt4-mini"
+GPT4_TURBO = "gpt4-turbo"
 ZEPHYR = "zephyr"
 GEMMA = "gemma"
 GEMMA_BASE = "gemma-base"
 GEMINI = "gemini"
 FLASH = "flash"
+GEMINI_2_5_FLASH = "gemini-2.5-flash"
 MISTRAL_Q6 = "mistral-q6"
 MISTRAL_Q4 = "mistral-q4"
 MISTRAL_HF = "mistral"
 SONNET = "sonnet"
 HAIKU = "haiku"
-BLOOM = "bloom"  # not supported due to poor performance
+# BLOOM = "bloom"  # not supported due to poor performance, removed
 SUPPORTED_MODELS = set(
     [
         GPT35,
         GPT4,
+        GPT4_NANO,
+        GPT4_MINI,
+        GPT4_TURBO,
         GEMINI,
         FLASH,
+        GEMINI_2_5_FLASH,
         ZEPHYR,
         MISTRAL_Q6,
         MISTRAL_Q4,
@@ -71,30 +79,35 @@ LLAMA_CPP_MODEL_MAP = {
 
 OPENAI_MODEL_MAP = {
     GPT35: "gpt-3.5-turbo",
-    GPT4: "gpt-4-turbo",
+    GPT4: "gpt-4.1-nano",
+    GPT4_NANO: "gpt-4.1-nano",
+    GPT4_MINI: "gpt-4.1-mini",
+    GPT4_TURBO: "gpt-4-turbo",
 }
 
 ANTHROPIC_MODEL_MAP = {
     SONNET: "claude-3-sonnet-20240229",
-    HAIKU: "claude-3-haiku-20240307",
+    HAIKU: "claude-3.5-haiku-20241022",
 }
 
 HF_MODEL_MAP = {
     ZEPHYR: "HuggingFaceH4/zephyr-7b-beta",
-    GEMMA: "google/gemma-1.1-7b-it",
+    GEMMA: "google/gemma-1.1-7b-it", # Reverted
     GEMMA_BASE: "google/gemma-7b",
-    MISTRAL_HF: "mistralai/Mistral-7B-Instruct-v0.2",
-    BLOOM: "bigscience/bloom",
+    MISTRAL_HF: "mistralai/Mistral-7B-Instruct-v0.3", # Updated
+    # QWEN3_8B: "Qwen/Qwen3-8B", # Removed
+    # BLOOM: "bigscience/bloom", # Removed
 }
 
-HF_INSTRUCT_MODELS = set([GEMMA, ZEPHYR, MISTRAL_HF])
+HF_INSTRUCT_MODELS = set([GEMMA, ZEPHYR, MISTRAL_HF]) # GEMMA_BASE is not instruct, QWEN3_8B removed
 
 # set of models that support the new chat completion endpoint
-HF_CHAT_COMPLETION_MODELS = set([ZEPHYR])
+HF_CHAT_COMPLETION_MODELS = set([ZEPHYR, MISTRAL_HF, GEMMA]) # QWEN3_8B was not here
 
 GOOGLE_MODEL_MAP = {
-    GEMINI: "models/gemini-1.0-pro-latest",
+    GEMINI: "models/gemini-1.5-pro-latest", # Updated
     FLASH: "models/gemini-1.5-flash-latest",
+    GEMINI_2_5_FLASH: "models/gemini-2.5-flash-latest",
 }
 
 ### API Key Constants ###
